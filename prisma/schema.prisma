@@ -1,0 +1,43 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Subgroup {
+  id           String        @id @default(cuid())
+  name         String        @unique
+  color        String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  participants Participant[]
+}
+
+model Participant {
+  id           String       @id @default(cuid())
+  name         String
+  pin          String
+  subgroupId   String
+  subgroup     Subgroup     @relation(fields: [subgroupId], references: [id], onDelete: Cascade)
+  
+  assignedToId String?      @unique
+  assignedTo   Participant? @relation("WichtelAssignment", fields: [assignedToId], references: [id])
+  assignedBy   Participant? @relation("WichtelAssignment")
+
+  hasRevealed  Boolean      @default(false)
+  revealedAt   DateTime?
+
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@unique([name, subgroupId])
+}
+
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
