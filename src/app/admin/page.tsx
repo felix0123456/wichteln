@@ -20,6 +20,9 @@ import {
   DollarSign,
   Share2,
   Lock,
+  Edit2,
+  X,
+  ExternalLink,
 } from "lucide-react";
 
 interface Subgroup {
@@ -92,6 +95,13 @@ export default function AdminPage() {
   // Privacy mask for matrix
   const [showMatrix, setShowMatrix] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  // Editing state for participants
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editPin, setEditPin] = useState("");
+  const [editSubgroupId, setEditSubgroupId] = useState("");
+  const [savingEdit, setSavingEdit] = useState(false);
 
   useEffect(() => {
     checkAuthAndLoad();
@@ -327,9 +337,78 @@ export default function AdminPage() {
     }
   };
 
-  // WhatsApp Message Generator
+  // Participant Editing Handlers
+  const startEditing = (p: Participant) => {
+    setEditingId(p.id);
+    setEditName(p.name);
+    setEditPin(p.pin);
+    setEditSubgroupId(p.subgroupId);
+  };
+
+  const cancelEditing = () => {
+    setEditingId(null);
+    setEditName("");
+    setEditPin("");
+    setEditSubgroupId("");
+  };
+
+  const saveEditing = async (id: string) => {
+    if (!editName.trim()) {
+      setAlertMessage({ type: "error", text: "Name darf nicht leer sein." });
+      return;
+    }
+    if (!editPin.trim()) {
+      setAlertMessage({ type: "error", text: "PIN darf nicht leer sein." });
+      return;
+    }
+
+    setSavingEdit(true);
+    try {
+      const res = await fetch("/api/admin/participants", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id,
+          name: editName.trim(),
+          pin: editPin.trim(),
+          subgroupId: editSubgroupId,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setAlertMessage({
+          type: "success",
+          text: `Teilnehmer "${editName}" erfolgreich aktualisiert!`,
+        });
+        cancelEditing();
+        await loadAllData();
+      } else {
+        setAlertMessage({ type: "error", text: data.error || "Fehler beim Speichern." });
+      }
+    } catch (err) {
+      setAlertMessage({ type: "error", text: "Netzwerkfehler beim Speichern." });
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
+  // Direct Profile Link and WhatsApp Share Generator
+  const getDirectLink = (p: Participant) => {
+    const origin =
+      typeof window !== "undefined" && window.location.origin
+        ? window.location.origin
+        : "https://wichteln.felixresch.com";
+    return `${origin}/?id=${p.id}`;
+  };
+
+  const getWhatsAppMessage = (p: Participant) => {
+    const directLink = getDirectLink(p);
+    return `Hallo ${p.name}! 🎄 Dein persönlicher Wichtel-PIN für dieses Jahr lautet: *${p.pin}*.\n\nKlicke direkt auf deinen persönlichen Link, um nachzusehen, wen du beschenkst:\n${directLink} 🎁`;
+  };
+
   const copyWhatsAppMessage = (p: Participant) => {
-    const text = `Hallo ${p.name}! 🎄 Dein persönlicher Wichtel-PIN für dieses Jahr lautet: *${p.pin}*. Schau unter https://wichteln.felixresch.com nach, wen du beschenkst! 🎁`;
+    const text = getWhatsAppMessage(p);
     navigator.clipboard.writeText(text);
     setCopiedId(p.id);
     setTimeout(() => setCopiedId(null), 2500);
@@ -750,41 +829,126 @@ export default function AdminPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {participants.map((p) => (
-                    <tr key={p.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                      <td style={{ padding: "12px 10px", fontWeight: "600", color: "#fff" }}>{p.name}</td>
-                      <td style={{ padding: "12px 10px" }}>
-                        <span
-                          className="badge"
-                          style={{
-                            backgroundColor: p.subgroup.color ? `${p.subgroup.color}20` : "rgba(16, 185, 129, 0.15)",
-                            color: p.subgroup.color || "#34d399",
-                            border: `1px solid ${p.subgroup.color || "#10b981"}`,
-                          }}
-                        >
-                          {p.subgroup.name}
-                        </span>
-                      </td>
-                      <td style={{ padding: "12px 10px", fontFamily: "monospace", fontSize: "1.05rem", color: "#fbbf24" }}>
-                        {p.pin}
-                      </td>
-                      <td style={{ padding: "12px 10px" }}>
-                        {p.hasRevealed ? (
-                          <span className="badge badge-green">Eingesehen</span>
-                        ) : (
-                          <span className="badge" style={{ color: "var(--text-muted)" }}>Noch offen</span>
-                        )}
-                      </td>
-                      <td style={{ padding: "12px 10px", textAlign: "right" }}>
-                        <button
-                          onClick={() => handleDeleteMember(p.id)}
-                          style={{ background: "transparent", border: "none", color: "#fb7185", cursor: "pointer" }}
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                  {participants.map((p) => {
+                    const isEditing = editingId === p.id;
+                    return (
+                      <tr key={p.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                        <td style={{ padding: "12px 10px" }}>
+                          {isEditing ? (
+                            <input
+                              type="text"
+                              className="festive-input"
+                              value={editName}
+                              onChange={(e) => setEditName(e.target.value)}
+                              style={{ padding: "6px 10px", fontSize: "0.9rem" }}
+                              autoFocus
+                            />
+                          ) : (
+                            <span style={{ fontWeight: "600", color: "#fff" }}>{p.name}</span>
+                          )}
+                        </td>
+                        <td style={{ padding: "12px 10px" }}>
+                          {isEditing ? (
+                            <select
+                              className="festive-input"
+                              value={editSubgroupId}
+                              onChange={(e) => setEditSubgroupId(e.target.value)}
+                              style={{ padding: "6px 10px", fontSize: "0.85rem" }}
+                            >
+                              {subgroups.map((g) => (
+                                <option key={g.id} value={g.id}>
+                                  {g.name}
+                                </option>
+                              ))}
+                            </select>
+                          ) : (
+                            <span
+                              className="badge"
+                              style={{
+                                backgroundColor: p.subgroup.color ? `${p.subgroup.color}20` : "rgba(16, 185, 129, 0.15)",
+                                color: p.subgroup.color || "#34d399",
+                                border: `1px solid ${p.subgroup.color || "#10b981"}`,
+                              }}
+                            >
+                              {p.subgroup.name}
+                            </span>
+                          )}
+                        </td>
+                        <td style={{ padding: "12px 10px" }}>
+                          {isEditing ? (
+                            <input
+                              type="text"
+                              maxLength={6}
+                              className="festive-input"
+                              value={editPin}
+                              onChange={(e) => setEditPin(e.target.value)}
+                              style={{
+                                padding: "6px 10px",
+                                fontSize: "0.95rem",
+                                fontFamily: "monospace",
+                                color: "#fbbf24",
+                                width: "90px",
+                                fontWeight: "700",
+                              }}
+                            />
+                          ) : (
+                            <span style={{ fontFamily: "monospace", fontSize: "1.05rem", color: "#fbbf24", fontWeight: "600" }}>
+                              {p.pin}
+                            </span>
+                          )}
+                        </td>
+                        <td style={{ padding: "12px 10px" }}>
+                          {isEditing ? (
+                            <span className="badge badge-gold">Wird bearbeitet</span>
+                          ) : p.hasRevealed ? (
+                            <span className="badge badge-green">Eingesehen</span>
+                          ) : (
+                            <span className="badge" style={{ color: "var(--text-muted)" }}>Noch offen</span>
+                          )}
+                        </td>
+                        <td style={{ padding: "12px 10px", textAlign: "right" }}>
+                          {isEditing ? (
+                            <div style={{ display: "flex", gap: "6px", justifyContent: "flex-end" }}>
+                              <button
+                                onClick={() => saveEditing(p.id)}
+                                disabled={savingEdit}
+                                className="btn-festive-gold"
+                                style={{ padding: "6px 12px", fontSize: "0.8rem" }}
+                                title="Speichern"
+                              >
+                                <Check size={14} /> Speichern
+                              </button>
+                              <button
+                                onClick={cancelEditing}
+                                className="btn-festive-outline"
+                                style={{ padding: "6px 10px", fontSize: "0.8rem" }}
+                                title="Abbrechen"
+                              >
+                                <X size={14} />
+                              </button>
+                            </div>
+                          ) : (
+                            <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+                              <button
+                                onClick={() => startEditing(p)}
+                                style={{ background: "transparent", border: "none", color: "#fbbf24", cursor: "pointer", padding: "4px" }}
+                                title="Name oder PIN bearbeiten"
+                              >
+                                <Edit2 size={16} />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteMember(p.id)}
+                                style={{ background: "transparent", border: "none", color: "#fb7185", cursor: "pointer", padding: "4px" }}
+                                title="Löschen"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -803,44 +967,190 @@ export default function AdminPage() {
             per WhatsApp oder Familien-Chat.
           </p>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "16px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", gap: "16px" }}>
             {participants.map((p) => {
               const isCopied = copiedId === p.id;
+              const directLink = getDirectLink(p);
+              const waText = getWhatsAppMessage(p);
+              const waHref = `https://api.whatsapp.com/send?text=${encodeURIComponent(waText)}`;
+              const isEditingThis = editingId === p.id;
+
               return (
                 <div
                   key={p.id}
                   style={{
                     background: "rgba(255, 255, 255, 0.04)",
-                    border: "1px solid rgba(255, 255, 255, 0.08)",
-                    borderRadius: "14px",
-                    padding: "16px",
+                    border: isEditingThis ? "1px solid rgba(251, 191, 36, 0.5)" : "1px solid rgba(255, 255, 255, 0.08)",
+                    borderRadius: "16px",
+                    padding: "18px",
                     display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
+                    flexDirection: "column",
+                    gap: "14px",
                   }}
                 >
-                  <div>
-                    <div style={{ fontWeight: "700", color: "#fff", fontSize: "1.05rem" }}>{p.name}</div>
-                    <div style={{ color: "var(--text-muted)", fontSize: "0.85rem", marginTop: "2px" }}>
-                      Gruppe: {p.subgroup.name} &bull; PIN: <strong style={{ color: "#fbbf24" }}>{p.pin}</strong>
+                  {isEditingThis ? (
+                    /* Inline Editing Mode */
+                    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                      <div>
+                        <label style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>Name:</label>
+                        <input
+                          type="text"
+                          className="festive-input"
+                          value={editName}
+                          onChange={(e) => setEditName(e.target.value)}
+                          style={{ padding: "8px 12px", marginTop: "4px" }}
+                          autoFocus
+                        />
+                      </div>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                        <div>
+                          <label style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>Gruppe:</label>
+                          <select
+                            className="festive-input"
+                            value={editSubgroupId}
+                            onChange={(e) => setEditSubgroupId(e.target.value)}
+                            style={{ padding: "8px 10px", marginTop: "4px" }}
+                          >
+                            {subgroups.map((g) => (
+                              <option key={g.id} value={g.id}>
+                                {g.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>PIN:</label>
+                          <input
+                            type="text"
+                            maxLength={6}
+                            className="festive-input"
+                            value={editPin}
+                            onChange={(e) => setEditPin(e.target.value)}
+                            style={{ padding: "8px 10px", marginTop: "4px", fontFamily: "monospace", color: "#fbbf24", fontWeight: "700" }}
+                          />
+                        </div>
+                      </div>
+                      <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end", marginTop: "6px" }}>
+                        <button
+                          onClick={() => saveEditing(p.id)}
+                          disabled={savingEdit}
+                          className="btn-festive-gold"
+                          style={{ padding: "8px 16px", fontSize: "0.85rem" }}
+                        >
+                          <Check size={15} /> Speichern
+                        </button>
+                        <button
+                          onClick={cancelEditing}
+                          className="btn-festive-outline"
+                          style={{ padding: "8px 12px", fontSize: "0.85rem" }}
+                        >
+                          <X size={15} /> Abbrechen
+                        </button>
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    /* Display Mode */
+                    <>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                        <div>
+                          <div style={{ fontWeight: "700", color: "#fff", fontSize: "1.1rem" }}>{p.name}</div>
+                          <div style={{ color: "var(--text-muted)", fontSize: "0.85rem", marginTop: "2px" }}>
+                            Gruppe: {p.subgroup.name}
+                          </div>
+                        </div>
 
-                  <button
-                    onClick={() => copyWhatsAppMessage(p)}
-                    className={isCopied ? "btn-festive-gold" : "btn-festive-outline"}
-                    style={{ fontSize: "0.85rem", padding: "8px 14px" }}
-                  >
-                    {isCopied ? (
-                      <>
-                        <Check size={15} /> Kopiert!
-                      </>
-                    ) : (
-                      <>
-                        <Copy size={15} /> WhatsApp-Text
-                      </>
-                    )}
-                  </button>
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                          <span
+                            className="badge badge-gold"
+                            style={{ fontFamily: "monospace", fontSize: "0.95rem", padding: "4px 10px" }}
+                          >
+                            PIN: {p.pin}
+                          </span>
+                          <button
+                            onClick={() => startEditing(p)}
+                            title="Name oder PIN bearbeiten"
+                            style={{
+                              background: "rgba(255,255,255,0.06)",
+                              border: "1px solid rgba(255,255,255,0.12)",
+                              borderRadius: "8px",
+                              color: "#fbbf24",
+                              cursor: "pointer",
+                              padding: "6px",
+                              display: "flex",
+                              alignItems: "center",
+                            }}
+                          >
+                            <Edit2 size={15} />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Direct pre-filled profile link */}
+                      <div
+                        style={{
+                          background: "rgba(0, 0, 0, 0.25)",
+                          border: "1px solid rgba(255, 255, 255, 0.06)",
+                          borderRadius: "10px",
+                          padding: "8px 12px",
+                          fontSize: "0.8rem",
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          color: "var(--text-secondary)",
+                          overflow: "hidden",
+                        }}
+                      >
+                        <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {directLink}
+                        </span>
+                        <a
+                          href={directLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="Link testen (Profil vorausgewählt)"
+                          style={{ color: "#fbbf24", marginLeft: "8px", display: "flex", alignItems: "center" }}
+                        >
+                          <ExternalLink size={14} />
+                        </a>
+                      </div>
+
+                      {/* Action buttons: Direct WhatsApp share & Copy message */}
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                        <a
+                          href={waHref}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn-festive-outline"
+                          style={{
+                            fontSize: "0.85rem",
+                            padding: "8px 12px",
+                            textDecoration: "none",
+                            color: "#34d399",
+                            borderColor: "rgba(16, 185, 129, 0.3)",
+                            background: "rgba(16, 185, 129, 0.1)",
+                          }}
+                        >
+                          <Share2 size={15} /> WhatsApp öffnen
+                        </a>
+
+                        <button
+                          onClick={() => copyWhatsAppMessage(p)}
+                          className={isCopied ? "btn-festive-gold" : "btn-festive-outline"}
+                          style={{ fontSize: "0.85rem", padding: "8px 12px" }}
+                        >
+                          {isCopied ? (
+                            <>
+                              <Check size={15} /> Kopiert!
+                            </>
+                          ) : (
+                            <>
+                              <Copy size={15} /> Text kopieren
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
               );
             })}

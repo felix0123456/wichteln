@@ -46,6 +46,20 @@ export default function HomePage() {
     fetchParticipants();
   }, []);
 
+  // Pre-fill profile from URL query parameter (e.g. ?id=...)
+  useEffect(() => {
+    if (participants.length > 0 && typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const prefillId = params.get("id") || params.get("p");
+      if (prefillId) {
+        const found = participants.find((p) => p.id === prefillId);
+        if (found) {
+          setSelectedId(found.id);
+        }
+      }
+    }
+  }, [participants]);
+
   const fetchParticipants = async () => {
     try {
       const res = await fetch("/api/reveal");
@@ -101,6 +115,12 @@ export default function HomePage() {
     setPin("");
     setSelectedId("");
     setErrorMessage(null);
+    if (typeof window !== "undefined" && window.history) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("id");
+      url.searchParams.delete("p");
+      window.history.replaceState({}, "", url.pathname);
+    }
   };
 
   return (
@@ -247,18 +267,50 @@ export default function HomePage() {
 
           {/* Step 1: Select Name */}
           <div style={{ textAlign: "left", marginBottom: "24px" }}>
-            <label
+            <div
               style={{
-                display: "block",
-                fontSize: "0.85rem",
-                fontWeight: "600",
-                color: "var(--text-secondary)",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
                 marginBottom: "8px",
-                letterSpacing: "0.02em",
               }}
             >
-              1. Wer bist du?
-            </label>
+              <label
+                style={{
+                  fontSize: "0.85rem",
+                  fontWeight: "600",
+                  color: "var(--text-secondary)",
+                  letterSpacing: "0.02em",
+                }}
+              >
+                1. Wer bist du?
+              </label>
+              {selectedId && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedId("");
+                    setPin("");
+                    if (typeof window !== "undefined" && window.history) {
+                      const url = new URL(window.location.href);
+                      url.searchParams.delete("id");
+                      url.searchParams.delete("p");
+                      window.history.replaceState({}, "", url.pathname);
+                    }
+                  }}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    color: "var(--accent-gold)",
+                    fontSize: "0.8rem",
+                    cursor: "pointer",
+                    textDecoration: "underline",
+                  }}
+                >
+                  Anderen Namen wählen
+                </button>
+              )}
+            </div>
             <select
               className="festive-input"
               value={selectedId}
