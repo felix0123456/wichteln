@@ -1,6 +1,6 @@
 FROM node:22-bookworm-slim AS base
 WORKDIR /app
-RUN apt-get update -y && apt-get install -y --no-install-recommends openssl ca-certificates \
+RUN apt-get update -y && apt-get install -y --no-install-recommends openssl ca-certificates curl \
     && rm -rf /var/lib/apt/lists/*
 
 # 1. Dependencies Stage
@@ -22,13 +22,14 @@ RUN npm run build
 FROM base AS runner
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV HOME="/home/nextjs"
 
 RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+RUN adduser --system --uid 1001 --home /home/nextjs nextjs
 
-# Ensure directories for SQLite volume and public exist with permissions
-RUN mkdir -p .next data public
-RUN chown -R nextjs:nodejs .next data public
+# Ensure directories for SQLite volume, public, and home exist with permissions
+RUN mkdir -p .next data public /home/nextjs
+RUN chown -R nextjs:nodejs .next data public /home/nextjs
 
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
@@ -46,4 +47,4 @@ ENV HOSTNAME="0.0.0.0"
 ENV DATABASE_URL="file:/app/data/wichteln.db"
 
 # Push DB schema directly to mounted volume on startup, then start server
-CMD ["/bin/sh", "-c", "npx --yes prisma@5.22.0 db push --accept-data-loss --skip-generate && (npx tsx prisma/seed.ts || true) && node server.js"]
+CMD ["/bin/sh", "-c", "./node_modules/.bin/prisma db push --accept-data-loss --skip-generate && (./node_modules/.bin/tsx prisma/seed.ts || true) && node server.js"]
