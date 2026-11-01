@@ -26,12 +26,12 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
+# Ensure directories for SQLite volume and public exist with permissions
+RUN mkdir -p .next data public
+RUN chown -R nextjs:nodejs .next data public
+
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
-
-# Ensure directories for SQLite volume exist with permissions
-RUN mkdir -p .next data
-RUN chown -R nextjs:nodejs .next data
 
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
