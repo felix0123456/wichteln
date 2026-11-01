@@ -24,6 +24,7 @@ export default function HomePage() {
   // Form State
   const [selectedId, setSelectedId] = useState<string>("");
   const [pin, setPin] = useState<string>("");
+  const [hasDirectPin, setHasDirectPin] = useState<boolean>(false);
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -46,15 +47,21 @@ export default function HomePage() {
     fetchParticipants();
   }, []);
 
-  // Pre-fill profile from URL query parameter (e.g. ?id=...)
+  // Pre-fill profile and PIN from URL query parameters (e.g. ?id=...&pin=...)
   useEffect(() => {
     if (participants.length > 0 && typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       const prefillId = params.get("id") || params.get("p");
+      const urlPin = params.get("pin") || params.get("code") || params.get("key");
+
       if (prefillId) {
         const found = participants.find((p) => p.id === prefillId);
         if (found) {
           setSelectedId(found.id);
+          if (urlPin) {
+            setPin(urlPin.trim());
+            setHasDirectPin(true);
+          }
         }
       }
     }
@@ -72,6 +79,22 @@ export default function HomePage() {
       console.error("Failed to load participants:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResetSelection = () => {
+    setSelectedId("");
+    setPin("");
+    setHasDirectPin(false);
+    setErrorMessage(null);
+    if (typeof window !== "undefined" && window.history) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("id");
+      url.searchParams.delete("p");
+      url.searchParams.delete("pin");
+      url.searchParams.delete("code");
+      url.searchParams.delete("key");
+      window.history.replaceState({}, "", url.pathname);
     }
   };
 
@@ -99,6 +122,7 @@ export default function HomePage() {
       if (!res.ok) {
         setErrorMessage(data.error || "Falsche PIN. Bitte versuche es erneut.");
         setPin("");
+        setHasDirectPin(false);
       } else {
         setRevealData(data);
       }
@@ -114,14 +138,20 @@ export default function HomePage() {
     setRevealData(null);
     setPin("");
     setSelectedId("");
+    setHasDirectPin(false);
     setErrorMessage(null);
     if (typeof window !== "undefined" && window.history) {
       const url = new URL(window.location.href);
       url.searchParams.delete("id");
       url.searchParams.delete("p");
+      url.searchParams.delete("pin");
+      url.searchParams.delete("code");
+      url.searchParams.delete("key");
       window.history.replaceState({}, "", url.pathname);
     }
   };
+
+  const selectedParticipant = participants.find((p) => p.id === selectedId);
 
   return (
     <main
@@ -216,8 +246,9 @@ export default function HomePage() {
               marginBottom: "28px",
             }}
           >
-            Wähle deinen Namen und gib deine 4-stellige PIN ein, um dein Wichtelkind
-            zu enthüllen.
+            {hasDirectPin
+              ? `Hallo ${selectedParticipant?.name || ""}! Klicke unten, um dein Wichtelkind direkt aufzudecken.`
+              : "Wähle deinen Namen und gib deine 4-stellige PIN ein, um dein Wichtelkind zu enthüllen."}
           </p>
 
           {/* Draw Status Indicator */}
@@ -265,7 +296,7 @@ export default function HomePage() {
             </div>
           )}
 
-          {/* Step 1: Select Name */}
+          {/* Step 1: Select Name / Participant Display */}
           <div style={{ textAlign: "left", marginBottom: "24px" }}>
             <div
               style={{
@@ -283,21 +314,12 @@ export default function HomePage() {
                   letterSpacing: "0.02em",
                 }}
               >
-                1. Wer bist du?
+                {hasDirectPin ? "Teilnehmer:" : "1. Wer bist du?"}
               </label>
               {selectedId && (
                 <button
                   type="button"
-                  onClick={() => {
-                    setSelectedId("");
-                    setPin("");
-                    if (typeof window !== "undefined" && window.history) {
-                      const url = new URL(window.location.href);
-                      url.searchParams.delete("id");
-                      url.searchParams.delete("p");
-                      window.history.replaceState({}, "", url.pathname);
-                    }
-                  }}
+                  onClick={handleResetSelection}
                   style={{
                     background: "transparent",
                     border: "none",
@@ -311,27 +333,134 @@ export default function HomePage() {
                 </button>
               )}
             </div>
-            <select
-              className="festive-input"
-              value={selectedId}
-              onChange={(e) => {
-                setSelectedId(e.target.value);
-                setErrorMessage(null);
-                setPin("");
-              }}
-              disabled={loading || submitting}
-            >
-              <option value="">-- Wähle deinen Namen --</option>
-              {participants.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name} ({p.subgroup.name})
-                </option>
-              ))}
-            </select>
+
+            {hasDirectPin && selectedParticipant ? (
+              <div
+                style={{
+                  background: "rgba(255, 255, 255, 0.08)",
+                  border: "1px solid rgba(251, 191, 36, 0.3)",
+                  borderRadius: "12px",
+                  padding: "12px 16px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  color: "#ffffff",
+                  fontWeight: "600",
+                  fontSize: "1.05rem",
+                }}
+              >
+                <span>{selectedParticipant.name}</span>
+                <span
+                  className="badge badge-gold"
+                  style={{ fontSize: "0.8rem", padding: "4px 10px" }}
+                >
+                  {selectedParticipant.subgroup.name}
+                </span>
+              </div>
+            ) : (
+              <select
+                className="festive-input"
+                value={selectedId}
+                onChange={(e) => {
+                  setSelectedId(e.target.value);
+                  setErrorMessage(null);
+                  setPin("");
+                  setHasDirectPin(false);
+                }}
+                disabled={loading || submitting}
+              >
+                <option value="">-- Wähle deinen Namen --</option>
+                {participants.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name} ({p.subgroup.name})
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
 
-          {/* Step 2: PIN Entry Pad */}
-          {selectedId && (
+          {/* Step 2: Direct Reveal Button (WhatsApp link) OR Tactile PIN Pad */}
+          {selectedId && hasDirectPin ? (
+            <div style={{ animation: "fadeIn 0.3s ease-in" }}>
+              <div
+                style={{
+                  background: "rgba(251, 191, 36, 0.08)",
+                  border: "1px solid rgba(251, 191, 36, 0.3)",
+                  borderRadius: "16px",
+                  padding: "20px 18px",
+                  marginBottom: "20px",
+                  textAlign: "center",
+                }}
+              >
+                <div
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: "48px",
+                    height: "48px",
+                    borderRadius: "50%",
+                    background: "rgba(251, 191, 36, 0.15)",
+                    color: "var(--accent-gold)",
+                    marginBottom: "10px",
+                    border: "1px solid rgba(251, 191, 36, 0.3)",
+                  }}
+                >
+                  <Sparkles size={24} />
+                </div>
+                <div
+                  style={{
+                    fontSize: "1.2rem",
+                    fontWeight: "700",
+                    color: "#ffffff",
+                    marginBottom: "6px",
+                  }}
+                >
+                  Hallo {selectedParticipant?.name}! 🎄
+                </div>
+                <div
+                  style={{
+                    fontSize: "0.88rem",
+                    color: "var(--text-secondary)",
+                    lineHeight: "1.4",
+                  }}
+                >
+                  Dein persönlicher Link ist aktiviert – keine PIN-Eingabe nötig!
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => handlePinSubmit(pin)}
+                disabled={submitting}
+                className="btn-festive-gold"
+                style={{
+                  width: "100%",
+                  padding: "16px",
+                  fontSize: "1.1rem",
+                  fontWeight: "700",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "10px",
+                  boxShadow: "0 8px 24px var(--accent-gold-glow)",
+                  cursor: "pointer",
+                }}
+              >
+                {submitting ? (
+                  <>
+                    <Sparkles size={20} className="float-animation" />
+                    Wichtel-Los wird geöffnet...
+                  </>
+                ) : (
+                  <>
+                    <Gift size={20} />
+                    Wichtelkind jetzt enthüllen 🎁
+                  </>
+                )}
+              </button>
+            </div>
+          ) : selectedId ? (
             <div style={{ animation: "fadeIn 0.3s ease-in" }}>
               <div
                 style={{
@@ -377,7 +506,7 @@ export default function HomePage() {
                 </div>
               )}
             </div>
-          )}
+          ) : null}
         </div>
       )}
 

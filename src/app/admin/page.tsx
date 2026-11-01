@@ -393,18 +393,18 @@ export default function AdminPage() {
     }
   };
 
-  // Direct Profile Link and WhatsApp Share Generator
+  // Direct Profile Link and WhatsApp Share Generator (no PIN entry required via personal link)
   const getDirectLink = (p: Participant) => {
     const origin =
       typeof window !== "undefined" && window.location.origin
         ? window.location.origin
         : "https://wichteln.felixresch.com";
-    return `${origin}/?id=${p.id}`;
+    return `${origin}/?id=${p.id}&pin=${encodeURIComponent(p.pin)}`;
   };
 
   const getWhatsAppMessage = (p: Participant) => {
     const directLink = getDirectLink(p);
-    return `Hallo ${p.name}! 🎄 Dein persönlicher Wichtel-PIN für dieses Jahr lautet: *${p.pin}*.\n\nKlicke direkt auf deinen persönlichen Link, um nachzusehen, wen du beschenkst:\n${directLink} 🎁`;
+    return `Hallo ${p.name}! 🎄 Hier ist dein persönlicher Wichtel-Link für dieses Jahr:\n${directLink}\n\nKlicke einfach auf den Link, um direkt zu erfahren, wen du beschenkst (keine PIN-Eingabe nötig)! 🎁`;
   };
 
   const copyWhatsAppMessage = (p: Participant) => {
