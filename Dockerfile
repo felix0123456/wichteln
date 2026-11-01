@@ -1,4 +1,4 @@
-FROM node:22-bullseye-slim AS base
+FROM node:22-bookworm-slim AS base
 
 # 1. Dependencies Stage
 FROM base AS deps
@@ -33,7 +33,7 @@ RUN adduser --system --uid 1001 nextjs
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 
-# Ensure directories for SQLite exist with permissions
+# Ensure directories for SQLite volume exist with permissions
 RUN mkdir -p .next data
 RUN chown -R nextjs:nodejs .next data
 
