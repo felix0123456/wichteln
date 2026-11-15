@@ -80,6 +80,16 @@ export default function AdminPage() {
     type: "success" | "error";
     text: string;
   } | null>(null);
+  const [reassignmentNotice, setReassignmentNotice] = useState<{
+    deletedName: string;
+    giverId: string;
+    giverName: string;
+    giverSubgroup: string;
+    giverPin: string;
+    hadAlreadyRevealed: boolean;
+    sameSubgroupWarning: boolean;
+  } | null>(null);
+  const [copiedReassign, setCopiedReassign] = useState(false);
 
   // Modals & Form States
   const [newGroupName, setNewGroupName] = useState("");
@@ -257,12 +267,26 @@ export default function AdminPage() {
   };
 
   const handleDeleteMember = async (id: string) => {
-    if (!confirm("Teilnehmer wirklich entfernen?")) return;
+    if (!confirm("Teilnehmer wirklich entfernen? Falls bereits ausgelost wurde, wird dessen Wichtelkind automatisch an seinen bisherigen Wichtel weitergegeben.")) return;
     try {
       const res = await fetch(`/api/admin/participants?id=${id}`, { method: "DELETE" });
+      const data = await res.json();
       if (res.ok) {
-        setAlertMessage({ type: "success", text: "Teilnehmer gelöscht." });
+        if (data.reassignment) {
+          setReassignmentNotice({
+            deletedName: data.deletedName,
+            ...data.reassignment,
+          });
+          setAlertMessage({
+            type: "success",
+            text: `Teilnehmer "${data.deletedName}" gelöscht. Wichtelkind wurde an ${data.reassignment.giverName} (${data.reassignment.giverSubgroup}) übertragen!`,
+          });
+        } else {
+          setAlertMessage({ type: "success", text: "Teilnehmer gelöscht." });
+        }
         await loadAllData();
+      } else {
+        setAlertMessage({ type: "error", text: data.error || "Fehler beim Löschen." });
       }
     } catch (err) {
       setAlertMessage({ type: "error", text: "Fehler beim Löschen." });
@@ -498,6 +522,83 @@ export default function AdminPage() {
           >
             ✕
           </button>
+        </div>
+      )}
+
+      {/* Reassignment Notice Banner after Participant Deletion */}
+      {reassignmentNotice && (
+        <div
+          style={{
+            background: "rgba(251, 191, 36, 0.14)",
+            border: "1px solid rgba(251, 191, 36, 0.55)",
+            color: "#fde68a",
+            borderRadius: "16px",
+            padding: "18px 20px",
+            marginBottom: "24px",
+            display: "flex",
+            flexDirection: "column",
+            gap: "12px",
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", fontWeight: 700, fontSize: "1.05rem", color: "#fbbf24" }}>
+              <AlertTriangle size={20} />
+              Wichtelkind-Weitergabe nach Löschung von „{reassignmentNotice.deletedName}“
+            </div>
+            <button
+              onClick={() => setReassignmentNotice(null)}
+              style={{ background: "transparent", border: "none", color: "#fde68a", cursor: "pointer", fontSize: "1rem" }}
+              title="Hinweis schließen"
+            >
+              ✕
+            </button>
+          </div>
+
+          <div style={{ fontSize: "0.95rem", lineHeight: 1.5, color: "#fef3c7" }}>
+            <strong>{reassignmentNotice.giverName}</strong> ({reassignmentNotice.giverSubgroup}) hatte bisher{" "}
+            <strong>{reassignmentNotice.deletedName}</strong> als Wichtelkind gezogen und hat nun automatisch das Wichtelkind von{" "}
+            <strong>{reassignmentNotice.deletedName}</strong> übernommen.
+            {reassignmentNotice.hadAlreadyRevealed ? (
+              <span>
+                {" "}Da <strong>{reassignmentNotice.giverName}</strong> das alte Los bereits geöffnet hatte, gib{" "}
+                <strong>{reassignmentNotice.giverName}</strong> bitte Bescheid, noch einmal über den persönlichen Link nachzuschauen!
+              </span>
+            ) : (
+              <span>
+                {" "}({reassignmentNotice.giverName} hatte das alte Los noch nicht geöffnet, sieht beim Aufrufen des Links also direkt das neue Wichtelkind.)
+              </span>
+            )}
+          </div>
+
+          {reassignmentNotice.sameSubgroupWarning && (
+            <div style={{ fontSize: "0.85rem", color: "#fca5a5", background: "rgba(225, 29, 72, 0.2)", padding: "8px 12px", borderRadius: "8px" }}>
+              ⚠️ Hinweis: Durch diese direkte Übernahme befindet sich das neue Wichtelkind von {reassignmentNotice.giverName} in derselben Untergruppe ({reassignmentNotice.giverSubgroup}).
+            </div>
+          )}
+
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "center" }}>
+            <button
+              type="button"
+              onClick={() => {
+                const origin =
+                  typeof window !== "undefined" && window.location.origin
+                    ? window.location.origin
+                    : "https://wichteln.felixresch.com";
+                const link = `${origin}/?id=${reassignmentNotice.giverId}&pin=${encodeURIComponent(reassignmentNotice.giverPin)}`;
+                const msg = `Hallo ${reassignmentNotice.giverName}! 🎄 Da sich bei den Teilnehmern noch eine kleine Änderung ergeben hat, wurde dir ein neues Wichtelkind zugeteilt.\n\nBitte schau über deinen persönlichen Link noch einmal nach, wen du jetzt beschenkst:\n${link} 🎁`;
+                navigator.clipboard.writeText(msg);
+                setCopiedReassign(true);
+                setTimeout(() => setCopiedReassign(false), 2500);
+              }}
+              className="btn-festive-gold"
+              style={{ padding: "8px 14px", fontSize: "0.85rem" }}
+            >
+              {copiedReassign ? <Check size={16} /> : <Share2 size={16} />}
+              {copiedReassign
+                ? "Nachricht kopiert!"
+                : `Update-Nachricht für ${reassignmentNotice.giverName} kopieren`}
+            </button>
+          </div>
         </div>
       )}
 

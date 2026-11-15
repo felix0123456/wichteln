@@ -140,12 +140,75 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "ID fehlt" }, { status: 400 });
     }
 
-    await prisma.participant.delete({
+    const target = await prisma.participant.findUnique({
       where: { id },
+      include: {
+        subgroup: true,
+        assignedTo: { include: { subgroup: true } },
+        assignedBy: { include: { subgroup: true } },
+      },
     });
 
-    return NextResponse.json({ success: true });
+    if (!target) {
+      return NextResponse.json(
+        { error: "Teilnehmer nicht gefunden." },
+        { status: 404 }
+      );
+    }
+
+    const giver = target.assignedBy; // Person A (who was gifting the deleted person)
+    const receiver = target.assignedTo; // Person C (who the deleted person was gifting)
+
+    await prisma.$transaction(async (tx) => {
+      // Unlink foreign keys first to avoid unique constraint conflicts on assignedToId
+      if (giver) {
+        await tx.participant.update({
+          where: { id: giver.id },
+          data: { assignedToId: null },
+        });
+      }
+      if (receiver) {
+        await tx.participant.update({
+          where: { id: target.id },
+          data: { assignedToId: null },
+        });
+      }
+
+      // Delete Person B
+      await tx.participant.delete({
+        where: { id: target.id },
+      });
+
+      // Bridge Person A -> Person C and reset Person A's reveal status so they can re-check
+      if (giver && receiver && giver.id !== receiver.id) {
+        await tx.participant.update({
+          where: { id: giver.id },
+          data: {
+            assignedToId: receiver.id,
+            hasRevealed: false,
+            revealedAt: null,
+          },
+        });
+      }
+    });
+
+    return NextResponse.json({
+      success: true,
+      deletedName: target.name,
+      reassignment:
+        giver && receiver && giver.id !== receiver.id
+          ? {
+              giverId: giver.id,
+              giverName: giver.name,
+              giverSubgroup: giver.subgroup.name,
+              giverPin: giver.pin,
+              hadAlreadyRevealed: giver.hasRevealed,
+              sameSubgroupWarning: giver.subgroupId === receiver.subgroupId,
+            }
+          : null,
+    });
   } catch (error) {
+    console.error("Delete participant error:", error);
     return NextResponse.json(
       { error: "Fehler beim Löschen des Teilnehmers." },
       { status: 500 }
