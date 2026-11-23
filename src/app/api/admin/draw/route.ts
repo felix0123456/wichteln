@@ -1,15 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { verifyAdminSession } from "@/lib/auth";
+import { verifyCommunityAdminSession } from "@/lib/auth";
+import { resolveCommunity } from "@/lib/community";
 import { generateWichtelMatching } from "@/lib/matching";
 
 export async function POST(request: NextRequest) {
-  if (!(await verifyAdminSession(request))) {
+  const { searchParams } = new URL(request.url);
+  const community = await resolveCommunity(searchParams.get("community"));
+  if (!community) {
+    return NextResponse.json({ error: "Community nicht gefunden" }, { status: 404 });
+  }
+
+  if (!(await verifyCommunityAdminSession(community.id, request))) {
     return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
   }
 
   try {
     const participants = await prisma.participant.findMany({
+      where: { communityId: community.id },
       select: {
         id: true,
         name: true,
@@ -32,10 +40,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Apply assignments in transaction
+    const drawnAt = new Date().toISOString();
+
     await prisma.$transaction(async (tx) => {
-      // 1. Reset all assignments first to avoid unique constraint conflicts
       await tx.participant.updateMany({
+        where: { communityId: community.id },
         data: {
           assignedToId: null,
           hasRevealed: false,
@@ -43,7 +52,6 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      // 2. Set each assignment
       for (const [giverId, receiverId] of result.assignments.entries()) {
         await tx.participant.update({
           where: { id: giverId },
@@ -53,24 +61,23 @@ export async function POST(request: NextRequest) {
         });
       }
 
-      // 3. Mark as drawn
       await tx.setting.upsert({
-        where: { key: "is_drawn" },
+        where: { communityId_key: { communityId: community.id, key: "is_drawn" } },
         update: { value: "true" },
-        create: { key: "is_drawn", value: "true" },
+        create: { communityId: community.id, key: "is_drawn", value: "true" },
       });
 
       await tx.setting.upsert({
-        where: { key: "drawn_at" },
-        update: { value: new Date().toISOString() },
-        create: { key: "drawn_at", value: new Date().toISOString() },
+        where: { communityId_key: { communityId: community.id, key: "drawn_at" } },
+        update: { value: drawnAt },
+        create: { communityId: community.id, key: "drawn_at", value: drawnAt },
       });
     });
 
     return NextResponse.json({
       success: true,
       count: participants.length,
-      drawnAt: new Date().toISOString(),
+      drawnAt,
     });
   } catch (error: any) {
     console.error("Draw error:", error);
@@ -82,13 +89,20 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  if (!(await verifyAdminSession(request))) {
+  const { searchParams } = new URL(request.url);
+  const community = await resolveCommunity(searchParams.get("community"));
+  if (!community) {
+    return NextResponse.json({ error: "Community nicht gefunden" }, { status: 404 });
+  }
+
+  if (!(await verifyCommunityAdminSession(community.id, request))) {
     return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
   }
 
   try {
     await prisma.$transaction([
       prisma.participant.updateMany({
+        where: { communityId: community.id },
         data: {
           assignedToId: null,
           hasRevealed: false,
@@ -96,9 +110,9 @@ export async function DELETE(request: NextRequest) {
         },
       }),
       prisma.setting.upsert({
-        where: { key: "is_drawn" },
+        where: { communityId_key: { communityId: community.id, key: "is_drawn" } },
         update: { value: "false" },
-        create: { key: "is_drawn", value: "false" },
+        create: { communityId: community.id, key: "is_drawn", value: "false" },
       }),
     ]);
 

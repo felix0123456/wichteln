@@ -1,10 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { resolveCommunity } from "@/lib/community";
 
 // GET /api/reveal - Public participant list for the name picker (ID, Name, Subgroup Name)
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    const communityParam = searchParams.get("community");
+    const community = await resolveCommunity(communityParam);
+
+    if (!community) {
+      return NextResponse.json(
+        { error: "Community nicht gefunden." },
+        { status: 404 }
+      );
+    }
+
     const participants = await prisma.participant.findMany({
+      where: { communityId: community.id },
       select: {
         id: true,
         name: true,
@@ -16,17 +29,25 @@ export async function GET() {
           },
         },
       },
-      orderBy: [
-        { subgroup: { name: "asc" } },
-        { name: "asc" },
-      ],
+      orderBy: [{ subgroup: { name: "asc" } }, { name: "asc" }],
     });
 
     const isDrawnSetting = await prisma.setting.findUnique({
-      where: { key: "is_drawn" },
+      where: {
+        communityId_key: {
+          communityId: community.id,
+          key: "is_drawn",
+        },
+      },
     });
 
     return NextResponse.json({
+      community: {
+        id: community.id,
+        slug: community.slug,
+        name: community.name,
+        isDefault: community.isDefault,
+      },
       participants,
       isDrawn: isDrawnSetting?.value === "true",
     });
@@ -43,7 +64,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { participantId, pin } = body;
+    const { participantId, pin, communitySlug } = body;
 
     if (!participantId || !pin) {
       return NextResponse.json(
@@ -71,6 +92,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (communitySlug) {
+      const community = await resolveCommunity(communitySlug);
+      if (!community || participant.communityId !== community.id) {
+        return NextResponse.json(
+          { error: "Teilnehmer gehört nicht zu dieser Community." },
+          { status: 404 }
+        );
+      }
+    }
+
     // Verify PIN (trimming whitespace)
     if (participant.pin.trim() !== pin.toString().trim()) {
       return NextResponse.json(
@@ -79,9 +110,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if draw has occurred
+    // Check if draw has occurred for this community
     const isDrawnSetting = await prisma.setting.findUnique({
-      where: { key: "is_drawn" },
+      where: {
+        communityId_key: {
+          communityId: participant.communityId,
+          key: "is_drawn",
+        },
+      },
     });
 
     if (isDrawnSetting?.value !== "true" || !participant.assignedTo) {
@@ -103,8 +139,10 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Fetch event metadata settings
-    const settings = await prisma.setting.findMany();
+    // Fetch event metadata settings for this community
+    const settings = await prisma.setting.findMany({
+      where: { communityId: participant.communityId },
+    });
     const settingsMap = new Map(settings.map((s) => [s.key, s.value]));
 
     return NextResponse.json({

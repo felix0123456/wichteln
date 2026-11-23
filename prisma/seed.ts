@@ -2,8 +2,22 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+const DEFAULT_COMMUNITY_ID = "default-community";
+
 async function main() {
   console.log("Checking Wichteln database state...");
+
+  // Always ensure the default community exists so existing rows have a valid parent
+  await prisma.community.upsert({
+    where: { id: DEFAULT_COMMUNITY_ID },
+    update: {},
+    create: {
+      id: DEFAULT_COMMUNITY_ID,
+      slug: "default",
+      name: "Familien-Wichteln",
+      isDefault: true,
+    },
+  });
 
   // Check if subgroups already exist in the persistent volume
   const existingCount = await prisma.subgroup.count();
@@ -25,9 +39,18 @@ async function main() {
 
   for (const s of initialSettings) {
     await prisma.setting.upsert({
-      where: { key: s.key },
+      where: {
+        communityId_key: {
+          communityId: DEFAULT_COMMUNITY_ID,
+          key: s.key,
+        },
+      },
       update: {},
-      create: s,
+      create: {
+        communityId: DEFAULT_COMMUNITY_ID,
+        key: s.key,
+        value: s.value,
+      },
     });
   }
 

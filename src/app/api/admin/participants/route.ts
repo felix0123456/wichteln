@@ -1,18 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { verifyAdminSession } from "@/lib/auth";
+import { verifyCommunityAdminSession } from "@/lib/auth";
+import { resolveCommunity } from "@/lib/community";
 
 function generatePin(): string {
   return Math.floor(1000 + Math.random() * 9000).toString();
 }
 
 export async function GET(request: NextRequest) {
-  if (!(await verifyAdminSession(request))) {
+  const { searchParams } = new URL(request.url);
+  const community = await resolveCommunity(searchParams.get("community"));
+  if (!community) {
+    return NextResponse.json({ error: "Community nicht gefunden" }, { status: 404 });
+  }
+
+  if (!(await verifyCommunityAdminSession(community.id, request))) {
     return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
   }
 
   try {
     const participants = await prisma.participant.findMany({
+      where: { communityId: community.id },
       include: {
         subgroup: true,
         assignedTo: {
@@ -23,10 +31,7 @@ export async function GET(request: NextRequest) {
           },
         },
       },
-      orderBy: [
-        { subgroup: { name: "asc" } },
-        { name: "asc" },
-      ],
+      orderBy: [{ subgroup: { name: "asc" } }, { name: "asc" }],
     });
 
     return NextResponse.json({ participants });
@@ -36,13 +41,18 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  if (!(await verifyAdminSession(request))) {
+  const { searchParams } = new URL(request.url);
+  const body = await request.json();
+  const community = await resolveCommunity(searchParams.get("community") || body.communitySlug);
+  if (!community) {
+    return NextResponse.json({ error: "Community nicht gefunden" }, { status: 404 });
+  }
+
+  if (!(await verifyCommunityAdminSession(community.id, request))) {
     return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
   }
 
   try {
-    const body = await request.json();
-
     // Check if bulk insert
     if (Array.isArray(body.participants)) {
       const created = [];
@@ -53,6 +63,7 @@ export async function POST(request: NextRequest) {
           data: {
             name: item.name.trim(),
             subgroupId: item.subgroupId,
+            communityId: community.id,
             pin,
           },
         });
@@ -69,12 +80,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const subgroup = await prisma.subgroup.findFirst({
+      where: { id: subgroupId, communityId: community.id },
+    });
+    if (!subgroup) {
+      return NextResponse.json(
+        { error: "Gruppe gehört nicht zu dieser Community." },
+        { status: 400 }
+      );
+    }
+
     const assignedPin = pin?.toString().trim() || generatePin();
 
     const participant = await prisma.participant.create({
       data: {
         name: name.trim(),
         subgroupId,
+        communityId: community.id,
         pin: assignedPin,
       },
       include: {
@@ -98,14 +120,28 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  if (!(await verifyAdminSession(request))) {
+  const { searchParams } = new URL(request.url);
+  const body = await request.json();
+  const community = await resolveCommunity(searchParams.get("community") || body.communitySlug);
+  if (!community) {
+    return NextResponse.json({ error: "Community nicht gefunden" }, { status: 404 });
+  }
+
+  if (!(await verifyCommunityAdminSession(community.id, request))) {
     return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
   }
 
   try {
-    const { id, name, subgroupId, pin } = await request.json();
+    const { id, name, subgroupId, pin } = body;
     if (!id) {
       return NextResponse.json({ error: "ID fehlt" }, { status: 400 });
+    }
+
+    const existing = await prisma.participant.findFirst({
+      where: { id, communityId: community.id },
+    });
+    if (!existing) {
+      return NextResponse.json({ error: "Teilnehmer nicht gefunden." }, { status: 404 });
     }
 
     const data: any = {};
@@ -129,19 +165,24 @@ export async function PATCH(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  if (!(await verifyAdminSession(request))) {
+  const { searchParams } = new URL(request.url);
+  const community = await resolveCommunity(searchParams.get("community"));
+  if (!community) {
+    return NextResponse.json({ error: "Community nicht gefunden" }, { status: 404 });
+  }
+
+  if (!(await verifyCommunityAdminSession(community.id, request))) {
     return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
   }
 
   try {
-    const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
     if (!id) {
       return NextResponse.json({ error: "ID fehlt" }, { status: 400 });
     }
 
-    const target = await prisma.participant.findUnique({
-      where: { id },
+    const target = await prisma.participant.findFirst({
+      where: { id, communityId: community.id },
       include: {
         subgroup: true,
         assignedTo: { include: { subgroup: true } },
@@ -156,11 +197,10 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const giver = target.assignedBy; // Person A (who was gifting the deleted person)
-    const receiver = target.assignedTo; // Person C (who the deleted person was gifting)
+    const giver = target.assignedBy;
+    const receiver = target.assignedTo;
 
     await prisma.$transaction(async (tx) => {
-      // Unlink foreign keys first to avoid unique constraint conflicts on assignedToId
       if (giver) {
         await tx.participant.update({
           where: { id: giver.id },
@@ -174,12 +214,10 @@ export async function DELETE(request: NextRequest) {
         });
       }
 
-      // Delete Person B
       await tx.participant.delete({
         where: { id: target.id },
       });
 
-      // Bridge Person A -> Person C and reset Person A's reveal status so they can re-check
       if (giver && receiver && giver.id !== receiver.id) {
         await tx.participant.update({
           where: { id: giver.id },

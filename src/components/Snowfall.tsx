@@ -15,6 +15,10 @@ export default function Snowfall() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return;
+    }
+
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
@@ -32,17 +36,17 @@ export default function Snowfall() {
 
     window.addEventListener("resize", handleResize);
 
-    const flakeCount = Math.min(Math.floor(width / 22), 65);
+    const flakeCount = Math.min(Math.floor(width / 36), 36);
     const flakes: Flake[] = [];
 
     for (let i = 0; i < flakeCount; i++) {
       flakes.push({
         x: Math.random() * width,
         y: Math.random() * height,
-        radius: Math.random() * 2.2 + 0.8,
-        speed: Math.random() * 0.9 + 0.4,
-        wind: Math.random() * 0.4 - 0.2,
-        opacity: Math.random() * 0.5 + 0.25,
+        radius: Math.random() * 1.8 + 0.8,
+        speed: Math.random() * 0.55 + 0.25,
+        wind: Math.random() * 0.25 - 0.125,
+        opacity: Math.random() * 0.35 + 0.2,
       });
     }
 
@@ -53,7 +57,7 @@ export default function Snowfall() {
         const f = flakes[i];
         ctx.beginPath();
         ctx.arc(f.x, f.y, f.radius, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255, 255, 255, ${f.opacity})`;
+        ctx.fillStyle = `rgba(182, 171, 151, ${f.opacity})`;
         ctx.fill();
 
         f.y += f.speed;
@@ -84,6 +88,7 @@ export default function Snowfall() {
   return (
     <canvas
       ref={canvasRef}
+      aria-hidden="true"
       style={{
         position: "fixed",
         top: 0,

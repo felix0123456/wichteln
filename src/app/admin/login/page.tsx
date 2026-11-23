@@ -30,7 +30,7 @@ export default function AdminLoginPage() {
       } else {
         router.push("/admin");
       }
-    } catch (err) {
+    } catch {
       setError("Verbindungsfehler beim Login.");
     } finally {
       setLoading(false);
@@ -38,144 +38,165 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "20px",
-      }}
-    >
-      <div
-        className="glass-panel"
+    <main className="portal-shell">
+      <header
+        className="stagger-in"
         style={{
-          width: "100%",
-          maxWidth: "400px",
-          padding: "36px 28px",
-          textAlign: "center",
+          ["--stagger-index" as string]: 0,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          paddingBottom: "16px",
+          marginBottom: "clamp(32px, 6vw, 64px)",
+          borderBottom: "1px solid var(--border-hairline)",
         }}
       >
-        <div
-          style={{
-            width: "60px",
-            height: "60px",
-            margin: "0 auto 16px",
-            borderRadius: "18px",
-            background:
-              "linear-gradient(135deg, rgba(251, 191, 36, 0.2) 0%, rgba(225, 29, 72, 0.3) 100%)",
-            border: "1px solid rgba(251, 191, 36, 0.4)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "#fbbf24",
-          }}
-        >
-          <KeyRound size={28} />
-        </div>
+        <span className="eyebrow" style={{ color: "var(--ink-primary)" }}>
+          wichteln · zentrale
+        </span>
+        <a href="/" className="btn-festive-outline" style={{ padding: "8px 14px", fontSize: "0.85rem" }}>
+          <ArrowLeft size={14} />
+          Zur Startseite
+        </a>
+      </header>
 
-        <h1
-          className="font-festive"
-          style={{ fontSize: "2rem", color: "#fff", marginBottom: "8px" }}
+      <div className="portal-grid">
+        {/* Columns 1–5: Editorial Context */}
+        <section
+          className="portal-col-left stagger-in"
+          style={{ ["--stagger-index" as string]: 1 }}
         >
-          Admin-Bereich
-        </h1>
+          <span className="eyebrow" style={{ display: "block", marginBottom: "12px" }}>
+            Administration
+          </span>
+          <h1
+            className="font-festive"
+            style={{
+              fontSize: "clamp(2.2rem, 4vw, 3.2rem)",
+              fontWeight: 700,
+              lineHeight: 1.06,
+              color: "var(--ink-primary)",
+              marginBottom: "16px",
+            }}
+          >
+            Admin-Bereich
+          </h1>
+          <p style={{ color: "var(--ink-secondary)", maxWidth: "38ch" }}>
+            Verwalte Untergruppen, Teilnehmer-PINs, WhatsApp-Direktlinks, Auslosungen sowie
+            Subadmin-Einladungen für weitere Communities.
+          </p>
+        </section>
 
-        <p
-          style={{
-            color: "var(--text-muted)",
-            fontSize: "0.9rem",
-            marginBottom: "24px",
-          }}
+        {/* Columns 6–12: Login Form Card */}
+        <section
+          className="portal-col-right stagger-in"
+          style={{ ["--stagger-index" as string]: 2 }}
         >
-          Passwortgeschützter Bereich zur Verwaltung der Gruppen und Auslosung.
-        </p>
-
-        {error && (
           <div
+            className="editorial-card-strong"
             style={{
-              background: "rgba(225, 29, 72, 0.15)",
-              border: "1px solid rgba(225, 29, 72, 0.4)",
-              color: "#fda4af",
-              borderRadius: "12px",
-              padding: "10px 14px",
-              marginBottom: "20px",
-              fontSize: "0.85rem",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              textAlign: "left",
+              maxWidth: "460px",
+              padding: "clamp(24px, 4vw, 36px)",
             }}
           >
-            <AlertCircle size={18} color="#fb7185" style={{ flexShrink: 0 }} />
-            <div>{error}</div>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: "20px", textAlign: "left" }}>
-            <label
-              style={{
-                display: "block",
-                fontSize: "0.85rem",
-                color: "var(--text-secondary)",
-                marginBottom: "8px",
-                fontWeight: "500",
-              }}
-            >
-              Master-Passwort
-            </label>
-            <div style={{ position: "relative" }}>
-              <input
-                type="password"
-                className="festive-input"
-                placeholder="Passwort eingeben..."
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                style={{ paddingLeft: "40px" }}
-                required
-                autoFocus
-              />
-              <Lock
-                size={18}
-                color="#94a3b8"
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "20px" }}>
+              <span
                 style={{
-                  position: "absolute",
-                  left: "14px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
+                  width: "36px",
+                  height: "36px",
+                  borderRadius: "8px",
+                  background: "var(--accent-tint)",
+                  color: "var(--accent)",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
                 }}
-              />
+              >
+                <KeyRound size={18} />
+              </span>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: "1.05rem", color: "var(--ink-primary)" }}>
+                  Superadmin-Anmeldung
+                </div>
+                <div style={{ fontSize: "0.82rem", color: "var(--ink-muted)" }}>
+                  Passwortgeschützter Zugang
+                </div>
+              </div>
             </div>
+
+            {error && (
+              <div
+                style={{
+                  background: "var(--status-err-bg)",
+                  border: "1px solid var(--status-err-border)",
+                  color: "var(--status-err-ink)",
+                  borderRadius: "10px",
+                  padding: "10px 14px",
+                  marginBottom: "18px",
+                  fontSize: "0.88rem",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
+              >
+                <AlertCircle size={17} style={{ flexShrink: 0 }} />
+                <span>{error}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit}>
+              <div style={{ marginBottom: "20px" }}>
+                <label
+                  htmlFor="admin-password"
+                  style={{
+                    display: "block",
+                    fontSize: "0.82rem",
+                    fontWeight: 700,
+                    letterSpacing: "0.04em",
+                    textTransform: "uppercase",
+                    color: "var(--ink-secondary)",
+                    marginBottom: "8px",
+                  }}
+                >
+                  Master-Passwort
+                </label>
+                <div style={{ position: "relative" }}>
+                  <input
+                    id="admin-password"
+                    type="password"
+                    className="festive-input"
+                    placeholder="Passwort eingeben..."
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    style={{ paddingLeft: "40px" }}
+                    required
+                    autoFocus
+                  />
+                  <Lock
+                    size={16}
+                    color="var(--ink-muted)"
+                    style={{
+                      position: "absolute",
+                      left: "14px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                    }}
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="btn-festive-red"
+                style={{ width: "100%", padding: "13px" }}
+                disabled={loading}
+              >
+                {loading ? "Anmelden..." : "Einloggen"}
+              </button>
+            </form>
           </div>
-
-          <button
-            type="submit"
-            className="btn-festive-gold"
-            style={{ width: "100%", padding: "14px" }}
-            disabled={loading}
-          >
-            {loading ? "Anmelden..." : "Einloggen"}
-          </button>
-        </form>
-
-        <div style={{ marginTop: "24px" }}>
-          <a
-            href="/"
-            style={{
-              color: "var(--text-muted)",
-              fontSize: "0.85rem",
-              textDecoration: "none",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "6px",
-            }}
-          >
-            <ArrowLeft size={14} />
-            Zurück zur Startseite
-          </a>
-        </div>
+        </section>
       </div>
-    </div>
+    </main>
   );
 }

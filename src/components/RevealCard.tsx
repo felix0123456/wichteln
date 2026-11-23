@@ -2,7 +2,7 @@
 
 import React, { useEffect } from "react";
 import confetti from "canvas-confetti";
-import { Gift, Calendar, DollarSign, ShieldAlert, ArrowLeft, Sparkles } from "lucide-react";
+import { Gift, Calendar, DollarSign, ShieldAlert, ArrowLeft } from "lucide-react";
 
 interface RevealCardProps {
   giverName: string;
@@ -26,22 +26,25 @@ export default function RevealCard({
   onClose,
 }: RevealCardProps) {
   useEffect(() => {
-    // Festive multi-angle confetti explosion
-    const end = Date.now() + 1200;
-    const colors = ["#fbbf24", "#e11d48", "#10b981", "#ffffff"];
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return;
+    }
+
+    const end = Date.now() + 900;
+    const colors = ["#B8332A", "#17231C", "#D8D0C0", "#1E563B"];
 
     const frame = () => {
       confetti({
-        particleCount: 4,
+        particleCount: 3,
         angle: 60,
-        spread: 55,
+        spread: 50,
         origin: { x: 0 },
         colors,
       });
       confetti({
-        particleCount: 4,
+        particleCount: 3,
         angle: 120,
-        spread: 55,
+        spread: 50,
         origin: { x: 1 },
         colors,
       });
@@ -55,125 +58,81 @@ export default function RevealCard({
 
   return (
     <div
-      className="glass-panel"
+      className="editorial-card-strong stagger-in"
       style={{
-        width: "100%",
-        maxWidth: "520px",
-        margin: "0 auto",
-        padding: "36px 28px",
-        textAlign: "center",
-        border: "1px solid rgba(251, 191, 36, 0.4)",
-        boxShadow: "0 25px 60px -15px rgba(0, 0, 0, 0.8), 0 0 40px rgba(251, 191, 36, 0.2)",
-        position: "relative",
-        animation: "cardPop 0.5s cubic-bezier(0.16, 1, 0.3, 1)",
+        padding: "clamp(24px, 4vw, 38px)",
+        textAlign: "left",
+        borderTop: "6px solid var(--accent)",
       }}
     >
-      {/* Decorative Golden Ribbon / Sparkle Badge */}
       <div
         style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: "8px",
-          background: "rgba(251, 191, 36, 0.15)",
-          color: "#fbbf24",
-          border: "1px solid rgba(251, 191, 36, 0.3)",
-          borderRadius: "9999px",
-          padding: "6px 16px",
-          fontSize: "0.85rem",
-          fontWeight: "600",
-          marginBottom: "20px",
-        }}
-      >
-        <Sparkles size={16} />
-        Hallo {giverName}, dein Wichtel-Los ist bereit!
-      </div>
-
-      {/* Floating Gift Icon */}
-      <div
-        style={{
-          width: "90px",
-          height: "90px",
-          margin: "0 auto 20px",
-          borderRadius: "24px",
-          background: "linear-gradient(135deg, rgba(225, 29, 72, 0.8) 0%, rgba(190, 18, 60, 0.9) 100%)",
-          border: "2px solid rgba(251, 191, 36, 0.6)",
           display: "flex",
+          justifyContent: "space-between",
           alignItems: "center",
-          justifyContent: "center",
-          color: "#fff",
-          boxShadow: "0 10px 30px rgba(225, 29, 72, 0.5), 0 0 25px rgba(251, 191, 36, 0.4)",
+          gap: "12px",
+          paddingBottom: "18px",
+          marginBottom: "24px",
+          borderBottom: "1px solid var(--border-hairline)",
         }}
-        className="festive-glow float-animation"
       >
-        <Gift size={46} strokeWidth={2.2} />
+        <span className="eyebrow">Wichtel-Los · {giverName}</span>
+        <span
+          style={{
+            width: "36px",
+            height: "36px",
+            borderRadius: "8px",
+            background: "var(--accent-tint)",
+            color: "var(--accent)",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Gift size={18} />
+        </span>
       </div>
 
       <p
         style={{
-          color: "var(--text-secondary)",
-          fontSize: "1.05rem",
-          letterSpacing: "0.03em",
+          color: "var(--ink-secondary)",
+          fontSize: "0.9rem",
+          fontWeight: 600,
+          letterSpacing: "0.06em",
           textTransform: "uppercase",
           marginBottom: "8px",
-          fontWeight: "500",
         }}
       >
-        Du beschenkst dieses Jahr:
+        Du beschenkst dieses Jahr
       </p>
 
-      {/* Recipient Name in Festive Typography */}
       <h2
         className="font-festive"
         style={{
-          fontSize: "2.6rem",
-          fontWeight: "800",
-          color: "#fff",
-          lineHeight: "1.2",
-          marginBottom: "12px",
-          textShadow: "0 0 25px rgba(251, 191, 36, 0.4)",
+          fontSize: "clamp(2.4rem, 5vw, 3.4rem)",
+          fontWeight: 700,
+          color: "var(--ink-primary)",
+          lineHeight: 1.06,
+          letterSpacing: "-0.025em",
+          marginBottom: "14px",
         }}
       >
         {receiver.name}
       </h2>
 
-      {/* Subgroup Badge */}
       <div style={{ marginBottom: "28px" }}>
-        <span
-          className="badge"
-          style={{
-            background: receiver.subgroupColor
-              ? `${receiver.subgroupColor}25`
-              : "rgba(16, 185, 129, 0.15)",
-            color: receiver.subgroupColor || "#34d399",
-            border: `1px solid ${
-              receiver.subgroupColor
-                ? `${receiver.subgroupColor}50`
-                : "rgba(16, 185, 129, 0.3)"
-            }`,
-            fontSize: "0.95rem",
-            padding: "6px 16px",
-          }}
-        >
-          Aus der Gruppe: <strong>{receiver.subgroup}</strong>
+        <span className="badge badge-green" style={{ fontSize: "0.86rem", padding: "5px 14px" }}>
+          Gruppe: <strong>{receiver.subgroup}</strong>
         </span>
       </div>
 
-      {/* Event Details Grid */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: "12px",
-          marginBottom: "24px",
-          textAlign: "left",
-        }}
-      >
-        {/* Budget */}
+      {/* Event Details */}
+      <div className="reveal-meta-grid" style={{ marginBottom: "20px" }}>
         <div
           style={{
-            background: "rgba(255, 255, 255, 0.04)",
-            border: "1px solid rgba(255, 255, 255, 0.08)",
-            borderRadius: "14px",
+            background: "var(--bg-paper)",
+            border: "1px solid var(--border-hairline)",
+            borderRadius: "12px",
             padding: "14px 16px",
           }}
         >
@@ -182,26 +141,27 @@ export default function RevealCard({
               display: "flex",
               alignItems: "center",
               gap: "6px",
-              color: "#fbbf24",
-              fontSize: "0.85rem",
-              fontWeight: "600",
-              marginBottom: "4px",
+              color: "var(--ink-muted)",
+              fontSize: "0.78rem",
+              fontWeight: 700,
+              letterSpacing: "0.06em",
+              textTransform: "uppercase",
+              marginBottom: "6px",
             }}
           >
-            <DollarSign size={15} />
+            <DollarSign size={14} />
             Budgetrichtwert
           </div>
-          <div style={{ fontSize: "1.05rem", fontWeight: "700", color: "#fff" }}>
+          <div style={{ fontSize: "1.05rem", fontWeight: 700, color: "var(--ink-primary)" }}>
             {eventDetails.budget}
           </div>
         </div>
 
-        {/* Date */}
         <div
           style={{
-            background: "rgba(255, 255, 255, 0.04)",
-            border: "1px solid rgba(255, 255, 255, 0.08)",
-            borderRadius: "14px",
+            background: "var(--bg-paper)",
+            border: "1px solid var(--border-hairline)",
+            borderRadius: "12px",
             padding: "14px 16px",
           }}
         >
@@ -210,69 +170,63 @@ export default function RevealCard({
               display: "flex",
               alignItems: "center",
               gap: "6px",
-              color: "#34d399",
-              fontSize: "0.85rem",
-              fontWeight: "600",
-              marginBottom: "4px",
+              color: "var(--ink-muted)",
+              fontSize: "0.78rem",
+              fontWeight: 700,
+              letterSpacing: "0.06em",
+              textTransform: "uppercase",
+              marginBottom: "6px",
             }}
           >
-            <Calendar size={15} />
+            <Calendar size={14} />
             Bescherung
           </div>
-          <div style={{ fontSize: "1.05rem", fontWeight: "700", color: "#fff" }}>
+          <div style={{ fontSize: "1.05rem", fontWeight: 700, color: "var(--ink-primary)" }}>
             {eventDetails.eventDate}
           </div>
         </div>
       </div>
 
-      {/* Secret Reminder Alert */}
+      {/* Secret Reminder */}
       <div
         style={{
-          background: "rgba(225, 29, 72, 0.12)",
-          border: "1px solid rgba(225, 29, 72, 0.3)",
-          borderRadius: "14px",
+          background: "var(--status-err-bg)",
+          border: "1px solid var(--status-err-border)",
+          borderRadius: "12px",
           padding: "14px 16px",
-          marginBottom: "28px",
+          marginBottom: "24px",
           display: "flex",
           alignItems: "flex-start",
           gap: "12px",
-          textAlign: "left",
         }}
       >
-        <ShieldAlert size={22} color="#fb7185" style={{ flexShrink: 0, marginTop: "2px" }} />
+        <ShieldAlert size={20} color="var(--status-err-ink)" style={{ flexShrink: 0, marginTop: "2px" }} />
         <div>
-          <div style={{ fontWeight: "700", color: "#fda4af", fontSize: "0.95rem" }}>
-            Strengste Geheimhaltung! 🤫
+          <div style={{ fontWeight: 700, color: "var(--status-err-ink)", fontSize: "0.9rem" }}>
+            Strengste Geheimhaltung
           </div>
-          <div style={{ color: "#fecdd3", fontSize: "0.85rem", marginTop: "2px", lineHeight: "1.4" }}>
+          <div
+            style={{
+              color: "var(--ink-primary)",
+              fontSize: "0.88rem",
+              marginTop: "2px",
+              lineHeight: 1.45,
+            }}
+          >
             {eventDetails.notes}
           </div>
         </div>
       </div>
 
-      {/* Close Button to return & hide */}
       <button
         type="button"
         onClick={onClose}
         className="btn-festive-outline"
-        style={{ width: "100%", padding: "14px 20px" }}
+        style={{ width: "100%", padding: "13px 18px" }}
       >
-        <ArrowLeft size={18} />
-        Ergebnis schließen (vor neugierigen Blicken schützen)
+        <ArrowLeft size={16} />
+        Ergebnis schließen (vor Blicken schützen)
       </button>
-
-      <style jsx>{`
-        @keyframes cardPop {
-          0% {
-            opacity: 0;
-            transform: scale(0.92) translateY(20px);
-          }
-          100% {
-            opacity: 1;
-            transform: scale(1) translateY(0);
-          }
-        }
-      `}</style>
     </div>
   );
 }

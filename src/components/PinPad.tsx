@@ -69,16 +69,17 @@ export default function PinPad({
         flexDirection: "column",
         alignItems: "center",
         width: "100%",
-        maxWidth: "320px",
+        maxWidth: "312px",
         margin: "0 auto",
       }}
     >
+      {/* 4-dot PIN Indicator */}
       <div
         style={{
           display: "flex",
           justifyContent: "center",
-          gap: "18px",
-          marginBottom: "28px",
+          gap: "16px",
+          marginBottom: "22px",
         }}
       >
         {[0, 1, 2, 3].map((index) => {
@@ -87,33 +88,33 @@ export default function PinPad({
             <div
               key={index}
               style={{
-                width: "20px",
-                height: "20px",
+                width: "16px",
+                height: "16px",
                 borderRadius: "50%",
                 border: isError
-                  ? "2px solid #ef4444"
+                  ? "2px solid var(--status-err-ink)"
                   : filled
-                  ? "2px solid #fbbf24"
-                  : "2px solid rgba(255, 255, 255, 0.2)",
+                  ? "2px solid var(--ink-primary)"
+                  : "2px solid var(--border-hairline)",
                 background: isError
-                  ? "rgba(239, 68, 68, 0.4)"
+                  ? "var(--status-err-bg)"
                   : filled
-                  ? "radial-gradient(circle, #fbbf24 30%, #f59e0b 100%)"
-                  : "rgba(255, 255, 255, 0.05)",
-                boxShadow: filled && !isError ? "0 0 14px rgba(251, 191, 36, 0.6)" : "none",
-                transform: filled ? "scale(1.15)" : "scale(1)",
-                transition: "all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                  ? "var(--ink-primary)"
+                  : "var(--bg-paper)",
+                transform: filled ? "scale(1.12)" : "scale(1)",
+                transition: "transform 160ms var(--ease-editorial), background-color 160ms var(--ease-editorial)",
               }}
             />
           );
         })}
       </div>
 
+      {/* Tactile Keypad */}
       <div
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(3, 1fr)",
-          gap: "12px",
+          gap: "10px",
           width: "100%",
         }}
       >
@@ -123,20 +124,20 @@ export default function PinPad({
             type="button"
             onClick={() => handleDigit(digit)}
             disabled={disabled}
+            className="font-mono-code"
             style={{
-              height: "64px",
-              fontSize: "1.6rem",
-              fontWeight: "600",
-              color: "#ffffff",
-              background: "rgba(255, 255, 255, 0.05)",
-              border: "1px solid rgba(255, 255, 255, 0.1)",
-              borderRadius: "16px",
+              height: "58px",
+              fontSize: "1.35rem",
+              fontWeight: 600,
+              color: "var(--ink-primary)",
+              background: "var(--bg-paper)",
+              border: "1px solid var(--border-hairline)",
+              borderRadius: "10px",
               cursor: disabled ? "not-allowed" : "pointer",
-              transition: "all 0.15s ease",
+              transition: "background-color 140ms var(--ease-editorial), border-color 140ms var(--ease-editorial)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              backdropFilter: "blur(8px)",
             }}
           >
             {digit}
@@ -149,39 +150,39 @@ export default function PinPad({
           disabled={disabled || pin.length === 0}
           title="Zurücksetzen"
           style={{
-            height: "64px",
-            color: "#94a3b8",
-            background: "rgba(255, 255, 255, 0.03)",
-            border: "1px solid rgba(255, 255, 255, 0.08)",
-            borderRadius: "16px",
+            height: "58px",
+            color: "var(--ink-secondary)",
+            background: "var(--bg-surface-muted)",
+            border: "1px solid var(--border-hairline)",
+            borderRadius: "10px",
             cursor: disabled || pin.length === 0 ? "not-allowed" : "pointer",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            opacity: pin.length === 0 ? 0.3 : 1,
-            transition: "all 0.15s ease",
+            opacity: pin.length === 0 ? 0.35 : 1,
+            transition: "opacity 140ms var(--ease-editorial)",
           }}
         >
-          <RotateCcw size={22} />
+          <RotateCcw size={20} />
         </button>
 
         <button
           type="button"
           onClick={() => handleDigit("0")}
           disabled={disabled}
+          className="font-mono-code"
           style={{
-            height: "64px",
-            fontSize: "1.6rem",
-            fontWeight: "600",
-            color: "#ffffff",
-            background: "rgba(255, 255, 255, 0.05)",
-            border: "1px solid rgba(255, 255, 255, 0.1)",
-            borderRadius: "16px",
+            height: "58px",
+            fontSize: "1.35rem",
+            fontWeight: 600,
+            color: "var(--ink-primary)",
+            background: "var(--bg-paper)",
+            border: "1px solid var(--border-hairline)",
+            borderRadius: "10px",
             cursor: disabled ? "not-allowed" : "pointer",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            transition: "all 0.15s ease",
           }}
         >
           0
@@ -193,20 +194,20 @@ export default function PinPad({
           disabled={disabled || pin.length === 0}
           title="Löschen"
           style={{
-            height: "64px",
-            color: "#fb7185",
-            background: "rgba(225, 29, 72, 0.08)",
-            border: "1px solid rgba(225, 29, 72, 0.15)",
-            borderRadius: "16px",
+            height: "58px",
+            color: "var(--status-err-ink)",
+            background: "var(--status-err-bg)",
+            border: "1px solid var(--status-err-border)",
+            borderRadius: "10px",
             cursor: disabled || pin.length === 0 ? "not-allowed" : "pointer",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            opacity: pin.length === 0 ? 0.3 : 1,
-            transition: "all 0.15s ease",
+            opacity: pin.length === 0 ? 0.35 : 1,
+            transition: "opacity 140ms var(--ease-editorial)",
           }}
         >
-          <Delete size={22} />
+          <Delete size={20} />
         </button>
       </div>
     </div>

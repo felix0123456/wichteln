@@ -8,22 +8,54 @@ generator client {
   binaryTargets = ["native", "debian-openssl-3.0.x", "linux-arm64-openssl-3.0.x"]
 }
 
+model Community {
+  id                String        @id @default(cuid())
+  slug              String        @unique
+  name              String
+  isDefault         Boolean       @default(false)
+  adminPasswordHash String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  subgroups         Subgroup[]
+  participants      Participant[]
+  settings          Setting[]
+  inviteLink        InviteLink?
+}
+
+model InviteLink {
+  id          String     @id @default(cuid())
+  token       String     @unique
+  label       String?
+  expiresAt   DateTime?
+  usedAt      DateTime?
+  revokedAt   DateTime?
+  communityId String?    @unique
+  community   Community? @relation(fields: [communityId], references: [id], onDelete: SetNull)
+  createdAt   DateTime   @default(now())
+}
+
 model Subgroup {
   id           String        @id @default(cuid())
-  name         String        @unique
+  name         String
   color        String?
+  communityId  String        @default("default-community")
+  community    Community     @relation(fields: [communityId], references: [id], onDelete: Cascade)
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   participants Participant[]
+
+  @@unique([communityId, name])
 }
 
 model Participant {
   id           String       @id @default(cuid())
   name         String
   pin          String
+  communityId  String       @default("default-community")
+  community    Community    @relation(fields: [communityId], references: [id], onDelete: Cascade)
   subgroupId   String
   subgroup     Subgroup     @relation(fields: [subgroupId], references: [id], onDelete: Cascade)
-  
+
   assignedToId String?      @unique
   assignedTo   Participant? @relation("WichtelAssignment", fields: [assignedToId], references: [id])
   assignedBy   Participant? @relation("WichtelAssignment")
@@ -38,7 +70,11 @@ model Participant {
 }
 
 model Setting {
-  key       String   @id
-  value     String
-  updatedAt DateTime @updatedAt
+  communityId String    @default("default-community")
+  community   Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  key         String
+  value       String
+  updatedAt   DateTime  @updatedAt
+
+  @@id([communityId, key])
 }
