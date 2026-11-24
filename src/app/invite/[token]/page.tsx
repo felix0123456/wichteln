@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Gift, Sparkles, Lock, Link2, AlertCircle, ArrowRight } from "lucide-react";
+import { PineStarMark, NorthStarIcon } from "@/components/ChristmasMotifs";
 
 function slugifyName(name: string): string {
   return name
@@ -108,25 +109,20 @@ export default function InviteRegistrationPage() {
   return (
     <main className="portal-shell">
       <header
-        className="stagger-in"
+        className="christmas-masthead stagger-in"
         style={{
           ["--stagger-index" as string]: 0,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          paddingBottom: "16px",
-          marginBottom: "clamp(28px, 5vw, 56px)",
-          borderBottom: "1px solid var(--border-hairline)",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <span
             style={{
-              width: "28px",
-              height: "28px",
-              borderRadius: "6px",
+              width: "30px",
+              height: "30px",
+              borderRadius: "8px",
               background: "var(--accent)",
               color: "var(--accent-ink)",
+              border: "1px solid var(--brass)",
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
@@ -134,11 +130,12 @@ export default function InviteRegistrationPage() {
           >
             <Gift size={15} />
           </span>
-          <span className="eyebrow" style={{ color: "var(--ink-primary)" }}>
-            wichteln · einladung
+          <NorthStarIcon size={14} color="#B58428" />
+          <span className="eyebrow" style={{ color: "var(--ink-on-pine)" }}>
+            weihnachtswichteln · einladung
           </span>
         </div>
-        <a href="/" className="btn-festive-outline" style={{ padding: "8px 14px", fontSize: "0.85rem" }}>
+        <a href="/" className="btn-masthead-outline">
           Zur Startseite
         </a>
       </header>
@@ -149,9 +146,12 @@ export default function InviteRegistrationPage() {
           className="portal-col-left stagger-in"
           style={{ ["--stagger-index" as string]: 1 }}
         >
-          <span className="eyebrow" style={{ display: "block", marginBottom: "12px" }}>
-            Subadmin-Registrierung
-          </span>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "14px" }}>
+            <PineStarMark size={40} />
+            <span className="eyebrow" style={{ color: "var(--accent)" }}>
+              Subadmin-Registrierung
+            </span>
+          </div>
           <h1
             className="font-festive"
             style={{

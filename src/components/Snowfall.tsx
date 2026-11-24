@@ -9,6 +9,9 @@ interface Flake {
   speed: number;
   wind: number;
   opacity: number;
+  isStar: boolean;
+  rotation: number;
+  spin: number;
 }
 
 export default function Snowfall() {
@@ -36,41 +39,66 @@ export default function Snowfall() {
 
     window.addEventListener("resize", handleResize);
 
-    const flakeCount = Math.min(Math.floor(width / 36), 36);
+    const flakeCount = Math.min(Math.floor(width / 28), 46);
     const flakes: Flake[] = [];
 
     for (let i = 0; i < flakeCount; i++) {
+      const isStar = i % 5 === 0;
       flakes.push({
         x: Math.random() * width,
         y: Math.random() * height,
-        radius: Math.random() * 1.8 + 0.8,
-        speed: Math.random() * 0.55 + 0.25,
-        wind: Math.random() * 0.25 - 0.125,
-        opacity: Math.random() * 0.35 + 0.2,
+        radius: isStar ? Math.random() * 2.2 + 2.8 : Math.random() * 2 + 1.1,
+        speed: Math.random() * 0.6 + 0.25,
+        wind: Math.random() * 0.28 - 0.14,
+        opacity: isStar ? Math.random() * 0.22 + 0.14 : Math.random() * 0.3 + 0.16,
+        isStar,
+        rotation: Math.random() * Math.PI,
+        spin: (Math.random() - 0.5) * 0.008,
       });
     }
+
+    const drawCrystal = (x: number, y: number, r: number, rot: number, alpha: number) => {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(rot);
+      ctx.strokeStyle = `rgba(181, 132, 40, ${alpha})`;
+      ctx.lineWidth = 1;
+      for (let k = 0; k < 3; k++) {
+        ctx.rotate(Math.PI / 3);
+        ctx.beginPath();
+        ctx.moveTo(-r, 0);
+        ctx.lineTo(r, 0);
+        ctx.stroke();
+      }
+      ctx.restore();
+    };
 
     const render = () => {
       ctx.clearRect(0, 0, width, height);
 
       for (let i = 0; i < flakes.length; i++) {
         const f = flakes[i];
-        ctx.beginPath();
-        ctx.arc(f.x, f.y, f.radius, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(182, 171, 151, ${f.opacity})`;
-        ctx.fill();
+        if (f.isStar) {
+          drawCrystal(f.x, f.y, f.radius, f.rotation, f.opacity);
+          f.rotation += f.spin;
+        } else {
+          ctx.beginPath();
+          ctx.arc(f.x, f.y, f.radius, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(197, 183, 154, ${f.opacity})`;
+          ctx.fill();
+        }
 
         f.y += f.speed;
         f.x += f.wind;
 
-        if (f.y > height) {
-          f.y = -5;
+        if (f.y > height + 8) {
+          f.y = -8;
           f.x = Math.random() * width;
         }
-        if (f.x > width) {
-          f.x = 0;
-        } else if (f.x < 0) {
-          f.x = width;
+        if (f.x > width + 8) {
+          f.x = -8;
+        } else if (f.x < -8) {
+          f.x = width + 8;
         }
       }
 

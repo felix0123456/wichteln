@@ -1,35 +1,42 @@
 :root {
-  /* Paper & Surface Tokens */
-  --bg-paper: #f6f1e7;
+  /* Candlelit Parchment & Evergreen Surface Tokens */
+  --bg-paper: #fbf6ec;
   --bg-surface: #ffffff;
-  --bg-surface-muted: #ede6d8;
-  --bg-surface-hover: #e5dec9;
+  --bg-surface-muted: #f2e9d8;
+  --bg-surface-hover: #e8dcc5;
+  --bg-pine: #123524;
+  --bg-pine-deep: #0b2418;
+  --bg-pine-soft: #1a4731;
 
   /* Ink Tokens */
-  --ink-primary: #17231c;
-  --ink-secondary: #46544b;
-  --ink-muted: #707d74;
+  --ink-primary: #132a1e;
+  --ink-secondary: #355243;
+  --ink-muted: #63776b;
+  --ink-on-pine: #fbf6ec;
+  --ink-on-pine-muted: #c6d8cc;
 
-  /* Hairline & Rule Tokens */
-  --border-hairline: #d8d0c0;
-  --border-strong: #17231c;
+  /* Hairline, Rule & Brass Ornament Tokens */
+  --border-hairline: #decfaf;
+  --border-strong: #123524;
+  --brass: #b58428;
+  --brass-soft: #f6ecd3;
 
-  /* Single Accent Token (Primary CTA & Active State) */
-  --accent: #b8332a;
-  --accent-hover: #9e2921;
+  /* Single Accent Token (Holly Cranberry Crimson — Primary CTA & Active Highlight) */
+  --accent: #b4231e;
+  --accent-hover: #961b17;
   --accent-ink: #ffffff;
-  --accent-tint: #f7e4e2;
+  --accent-tint: #fce9e7;
 
-  /* Semantic Status Tokens (Muted Editorial) */
-  --status-ok-bg: #e3efe8;
-  --status-ok-ink: #1e563b;
-  --status-ok-border: #bdd6c7;
-  --status-warn-bg: #f3ead3;
-  --status-warn-ink: #6d5115;
-  --status-warn-border: #dfd0a8;
-  --status-err-bg: #f7e4e2;
-  --status-err-ink: #8f241d;
-  --status-err-border: #e5b7b3;
+  /* Semantic Status Tokens (Muted Christmas Editorial) */
+  --status-ok-bg: #e0efe5;
+  --status-ok-ink: #123524;
+  --status-ok-border: #b0cebc;
+  --status-warn-bg: #f7ecd2;
+  --status-warn-ink: #735012;
+  --status-warn-border: #dfc78b;
+  --status-err-bg: #fce9e7;
+  --status-err-ink: #8e1b17;
+  --status-err-border: #e5b2ae;
 
   /* Typography */
   --font-main: var(--font-sans), "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
@@ -82,12 +89,52 @@ body {
   line-height: 1.2;
 }
 
-/* Editorial Surface Card (Zero gradients, crisp hairline + subtle offset) */
+/* Christmas Evergreen Masthead Strip (Zero Gradients) */
+.christmas-masthead {
+  background: var(--bg-pine);
+  color: var(--ink-on-pine);
+  border-bottom: 3px solid var(--brass);
+  padding: 14px 20px;
+  border-radius: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: clamp(24px, 4.5vw, 46px);
+}
+
+.christmas-masthead .btn-masthead-outline {
+  background: var(--bg-pine-soft);
+  color: var(--ink-on-pine);
+  border: 1px solid var(--brass);
+  border-radius: 10px;
+  font-weight: 600;
+  padding: 8px 14px;
+  font-size: 0.85rem;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background-color 160ms var(--ease-editorial), border-color 160ms var(--ease-editorial);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+  font-family: inherit;
+  min-height: 40px;
+}
+
+.christmas-masthead .btn-masthead-outline:hover {
+  background: var(--bg-pine-deep);
+  border-color: var(--ink-on-pine);
+}
+
+/* Editorial Surface Cards (Zero gradients, pine/vellum offset shadows) */
 .glass-panel {
   background: var(--bg-surface);
   border: 1px solid var(--border-hairline);
   border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(23, 35, 28, 0.04);
+  box-shadow: 0 2px 8px rgba(19, 42, 30, 0.05);
   transition: border-color 180ms var(--ease-editorial);
 }
 
@@ -98,7 +145,15 @@ body {
   box-shadow: 6px 6px 0 var(--bg-surface-muted);
 }
 
-/* Primary Accent Action Button */
+.pine-feature-box {
+  background: var(--bg-pine);
+  color: var(--ink-on-pine);
+  border: 1.5px solid var(--bg-pine-deep);
+  border-radius: 14px;
+  padding: 18px 20px;
+}
+
+/* Primary Holly Crimson Action Button */
 .btn-festive-red,
 .btn-festive-gold {
   background: var(--accent);
@@ -109,6 +164,7 @@ body {
   padding: 12px 22px;
   font-size: 0.95rem;
   line-height: 1.2;
+  min-height: 44px;
   cursor: pointer;
   transition: background-color 160ms var(--ease-editorial), border-color 160ms var(--ease-editorial), transform 160ms var(--ease-editorial);
   display: inline-flex;
@@ -147,6 +203,7 @@ body {
   padding: 10px 18px;
   font-size: 0.9rem;
   line-height: 1.2;
+  min-height: 44px;
   cursor: pointer;
   transition: background-color 160ms var(--ease-editorial), border-color 160ms var(--ease-editorial);
   display: inline-flex;
@@ -159,7 +216,7 @@ body {
 
 .btn-festive-outline:hover:not(:disabled) {
   background: var(--bg-surface-muted);
-  border-color: var(--ink-primary);
+  border-color: var(--border-strong);
 }
 
 .btn-festive-outline:disabled {
@@ -170,6 +227,7 @@ body {
 /* Inputs */
 .festive-input {
   width: 100%;
+  min-height: 44px;
   background: var(--bg-surface);
   border: 1px solid var(--border-hairline);
   border-radius: 10px;
@@ -183,7 +241,7 @@ body {
 
 .festive-input:focus {
   border-color: var(--border-strong);
-  box-shadow: 0 0 0 3px var(--bg-surface-muted);
+  box-shadow: 0 0 0 3px var(--brass-soft);
 }
 
 .festive-input::placeholder {
@@ -192,7 +250,7 @@ body {
 
 select.festive-input {
   appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2317231C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23123524' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
   background-repeat: no-repeat;
   background-position: right 14px center;
   background-size: 16px;
@@ -238,7 +296,7 @@ select.festive-input {
   width: 100%;
   max-width: 1120px;
   margin: 0 auto;
-  padding: 24px 24px 48px;
+  padding: 20px 24px 48px;
 }
 
 .portal-grid {
@@ -250,7 +308,7 @@ select.festive-input {
 
 .portal-col-left {
   grid-column: 1 / span 5;
-  padding-top: 12px;
+  padding-top: 8px;
 }
 
 .portal-col-right {
@@ -261,7 +319,7 @@ select.festive-input {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 24px 24px 56px;
+  padding: 20px 24px 56px;
 }
 
 .admin-layout {
@@ -302,7 +360,7 @@ select.festive-input {
 @media (max-width: 900px) {
   .portal-shell,
   .admin-shell {
-    padding: 18px 16px 40px;
+    padding: 16px 16px 40px;
   }
 
   .portal-grid {

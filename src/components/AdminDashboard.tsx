@@ -26,6 +26,7 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import SuperadminCommunitiesTab from "@/components/SuperadminCommunitiesTab";
+import { PineStarMark, NorthStarIcon } from "@/components/ChristmasMotifs";
 
 interface Subgroup {
   id: string;
@@ -576,21 +577,18 @@ export default function AdminDashboard({
     return (
       <main className="portal-shell">
         <header
-          className="stagger-in"
+          className="christmas-masthead stagger-in"
           style={{
             ["--stagger-index" as string]: 0,
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            paddingBottom: "16px",
-            marginBottom: "clamp(32px, 6vw, 64px)",
-            borderBottom: "1px solid var(--border-hairline)",
           }}
         >
-          <span className="eyebrow font-mono-code" style={{ color: "var(--ink-primary)" }}>
-            wichteln / {communitySlug} / admin
-          </span>
-          <a href={portalPath} className="btn-festive-outline" style={{ padding: "8px 14px", fontSize: "0.85rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <NorthStarIcon size={14} color="#B58428" />
+            <span className="eyebrow font-mono-code" style={{ color: "var(--ink-on-pine)" }}>
+              weihnachtswichteln / {communitySlug} / admin
+            </span>
+          </div>
+          <a href={portalPath} className="btn-masthead-outline">
             <ArrowLeft size={14} />
             Zurück zur Gruppe
           </a>
@@ -598,9 +596,12 @@ export default function AdminDashboard({
 
         <div className="portal-grid">
           <section className="portal-col-left stagger-in" style={{ ["--stagger-index" as string]: 1 }}>
-            <span className="eyebrow" style={{ display: "block", marginBottom: "12px" }}>
-              Community-Verwaltung
-            </span>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "14px" }}>
+              <PineStarMark size={40} />
+              <span className="eyebrow" style={{ color: "var(--accent)" }}>
+                Community-Verwaltung
+              </span>
+            </div>
             <h1
               className="font-festive"
               style={{
@@ -701,56 +702,50 @@ export default function AdminDashboard({
 
   return (
     <div className="admin-shell">
-      {/* Top Masthead */}
+      {/* Christmas Evergreen Masthead */}
       <header
-        className="stagger-in"
+        className="christmas-masthead stagger-in"
         style={{
           ["--stagger-index" as string]: 0,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-end",
-          marginBottom: "28px",
-          paddingBottom: "18px",
-          borderBottom: "1px solid var(--border-hairline)",
-          flexWrap: "wrap",
-          gap: "16px",
         }}
       >
-        <div>
-          <span className="eyebrow" style={{ display: "block", marginBottom: "6px" }}>
-            {communitySlug ? `Community · /c/${communitySlug}` : "Superadmin · Standard-Runde"}
-          </span>
-          <h1
-            className="font-festive"
-            style={{
-              fontSize: "clamp(1.9rem, 3.2vw, 2.5rem)",
-              fontWeight: 700,
-              color: "var(--ink-primary)",
-              lineHeight: 1.08,
-            }}
-          >
-            {communitySlug ? communityName : "Wichtel-Zentrale"}
-          </h1>
+        <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+          <PineStarMark size={38} />
+          <div>
+            <span className="eyebrow" style={{ display: "block", marginBottom: "4px", color: "var(--ink-on-pine-muted)" }}>
+              {communitySlug ? `Community · /c/${communitySlug}` : "Superadmin · Standard-Runde"}
+            </span>
+            <h1
+              className="font-festive"
+              style={{
+                fontSize: "clamp(1.65rem, 3vw, 2.25rem)",
+                fontWeight: 700,
+                color: "var(--ink-on-pine)",
+                lineHeight: 1.08,
+              }}
+            >
+              {communitySlug ? communityName : "Wichtel-Zentrale"}
+            </h1>
+          </div>
         </div>
 
         <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
           {communitySlug && isSuperadmin && (
-            <a href="/admin" className="btn-festive-outline" style={{ fontSize: "0.85rem", padding: "8px 14px" }}>
+            <a href="/admin" className="btn-masthead-outline">
               ← Superadmin
             </a>
           )}
-          <a href={portalPath} target="_blank" className="btn-festive-outline" style={{ fontSize: "0.85rem", padding: "8px 14px" }}>
+          <a href={portalPath} target="_blank" className="btn-masthead-outline">
             Teilnehmer-Seite
             <ExternalLink size={14} />
           </a>
           <button
             onClick={handleLogout}
-            className="btn-festive-outline"
+            className="btn-masthead-outline"
             style={{
-              fontSize: "0.85rem",
-              padding: "8px 14px",
-              color: "var(--status-err-ink)",
-              borderColor: "var(--status-err-border)",
+              background: "var(--accent)",
+              borderColor: "var(--brass)",
+              color: "var(--accent-ink)",
             }}
           >
             <LogOut size={15} />

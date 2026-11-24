@@ -3,6 +3,7 @@
 import React, { useEffect } from "react";
 import confetti from "canvas-confetti";
 import { Gift, Calendar, DollarSign, ShieldAlert, ArrowLeft } from "lucide-react";
+import { HollySprig, NorthStarIcon } from "@/components/ChristmasMotifs";
 
 interface RevealCardProps {
   giverName: string;
@@ -30,8 +31,8 @@ export default function RevealCard({
       return;
     }
 
-    const end = Date.now() + 900;
-    const colors = ["#B8332A", "#17231C", "#D8D0C0", "#1E563B"];
+    const end = Date.now() + 1000;
+    const colors = ["#B4231E", "#123524", "#B58428", "#FBF6EC"];
 
     const frame = () => {
       confetti({
@@ -60,51 +61,70 @@ export default function RevealCard({
     <div
       className="editorial-card-strong stagger-in"
       style={{
-        padding: "clamp(24px, 4vw, 38px)",
+        overflow: "hidden",
         textAlign: "left",
-        borderTop: "6px solid var(--accent)",
+        border: "1.5px solid var(--border-strong)",
       }}
     >
+      {/* Evergreen Christmas Ticket Header */}
       <div
         style={{
+          background: "var(--bg-pine)",
+          color: "var(--ink-on-pine)",
+          padding: "16px clamp(20px, 4vw, 34px)",
+          borderBottom: "3px solid var(--brass)",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
           gap: "12px",
-          paddingBottom: "18px",
-          marginBottom: "24px",
-          borderBottom: "1px solid var(--border-hairline)",
         }}
       >
-        <span className="eyebrow">Wichtel-Los · {giverName}</span>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <NorthStarIcon size={16} color="#B58428" />
+          <span className="eyebrow" style={{ color: "var(--ink-on-pine)" }}>
+            Weihnachtliches Wichtel-Los · {giverName}
+          </span>
+        </div>
         <span
           style={{
-            width: "36px",
-            height: "36px",
+            width: "34px",
+            height: "34px",
             borderRadius: "8px",
-            background: "var(--accent-tint)",
-            color: "var(--accent)",
+            background: "var(--accent)",
+            color: "var(--accent-ink)",
             display: "inline-flex",
             alignItems: "center",
             justifyContent: "center",
+            border: "1px solid var(--brass)",
           }}
         >
-          <Gift size={18} />
+          <Gift size={17} />
         </span>
       </div>
 
-      <p
-        style={{
-          color: "var(--ink-secondary)",
-          fontSize: "0.9rem",
-          fontWeight: 600,
-          letterSpacing: "0.06em",
-          textTransform: "uppercase",
-          marginBottom: "8px",
-        }}
-      >
-        Du beschenkst dieses Jahr
-      </p>
+      <div style={{ padding: "clamp(24px, 4vw, 36px)" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: "12px",
+            marginBottom: "10px",
+          }}
+        >
+          <p
+            style={{
+              color: "var(--ink-secondary)",
+              fontSize: "0.86rem",
+              fontWeight: 700,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+            }}
+          >
+            Du beschenkst dieses Weihnachten
+          </p>
+          <HollySprig size={24} />
+        </div>
 
       <h2
         className="font-festive"
@@ -227,6 +247,7 @@ export default function RevealCard({
         <ArrowLeft size={16} />
         Ergebnis schließen (vor Blicken schützen)
       </button>
+      </div>
     </div>
   );
 }

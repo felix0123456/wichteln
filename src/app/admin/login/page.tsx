@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Lock, KeyRound, ArrowLeft, AlertCircle } from "lucide-react";
+import { PineStarMark, NorthStarIcon } from "@/components/ChristmasMotifs";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -40,21 +41,18 @@ export default function AdminLoginPage() {
   return (
     <main className="portal-shell">
       <header
-        className="stagger-in"
+        className="christmas-masthead stagger-in"
         style={{
           ["--stagger-index" as string]: 0,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          paddingBottom: "16px",
-          marginBottom: "clamp(32px, 6vw, 64px)",
-          borderBottom: "1px solid var(--border-hairline)",
         }}
       >
-        <span className="eyebrow" style={{ color: "var(--ink-primary)" }}>
-          wichteln · zentrale
-        </span>
-        <a href="/" className="btn-festive-outline" style={{ padding: "8px 14px", fontSize: "0.85rem" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <NorthStarIcon size={14} color="#B58428" />
+          <span className="eyebrow" style={{ color: "var(--ink-on-pine)" }}>
+            weihnachtswichteln · zentrale
+          </span>
+        </div>
+        <a href="/" className="btn-masthead-outline">
           <ArrowLeft size={14} />
           Zur Startseite
         </a>
@@ -66,9 +64,12 @@ export default function AdminLoginPage() {
           className="portal-col-left stagger-in"
           style={{ ["--stagger-index" as string]: 1 }}
         >
-          <span className="eyebrow" style={{ display: "block", marginBottom: "12px" }}>
-            Administration
-          </span>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "14px" }}>
+            <PineStarMark size={40} />
+            <span className="eyebrow" style={{ color: "var(--accent)" }}>
+              Administration
+            </span>
+          </div>
           <h1
             className="font-festive"
             style={{

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Sparkles, Gift, Lock, AlertCircle, Settings, CheckCircle2, ArrowRight } from "lucide-react";
 import PinPad from "@/components/PinPad";
 import RevealCard from "@/components/RevealCard";
+import { PineStarMark, HollySprig, NorthStarIcon } from "@/components/ChristmasMotifs";
 
 interface Participant {
   id: string;
@@ -200,41 +201,38 @@ export default function RevealPortal({ communitySlug }: RevealPortalProps) {
 
   return (
     <main className="portal-shell">
-      {/* Masthead Bar */}
+      {/* Christmas Evergreen Masthead Bar */}
       <header
-        className="stagger-in"
+        className="christmas-masthead stagger-in"
         style={{
           ["--stagger-index" as string]: 0,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          paddingBottom: "16px",
-          marginBottom: "clamp(28px, 5vw, 56px)",
-          borderBottom: "1px solid var(--border-hairline)",
-          gap: "12px",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <span
             style={{
-              width: "28px",
-              height: "28px",
-              borderRadius: "6px",
+              width: "32px",
+              height: "32px",
+              borderRadius: "8px",
               background: "var(--accent)",
               color: "var(--accent-ink)",
+              border: "1px solid var(--brass)",
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
             }}
           >
-            <Gift size={15} />
+            <Gift size={16} />
           </span>
-          <span className="eyebrow" style={{ color: "var(--ink-primary)" }}>
-            {communitySlug ? `wichteln / ${communitySlug}` : "wichteln · 2026"}
-          </span>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <NorthStarIcon size={14} color="#B58428" />
+            <span className="eyebrow" style={{ color: "var(--ink-on-pine)" }}>
+              {communitySlug ? `weihnachtswichteln / ${communitySlug}` : "weihnachtswichteln · advent 2026"}
+            </span>
+          </div>
         </div>
 
-        <a href={adminHref} className="btn-festive-outline" style={{ padding: "8px 14px", fontSize: "0.85rem" }}>
+        <a href={adminHref} className="btn-masthead-outline">
           <Settings size={14} />
           Admin-Bereich
         </a>
@@ -242,14 +240,17 @@ export default function RevealPortal({ communitySlug }: RevealPortalProps) {
 
       {/* 12-Column Asymmetric Layout */}
       <div className="portal-grid">
-        {/* Columns 1–5: Editorial Intro & Step Ledger */}
+        {/* Columns 1–5: Editorial Intro, Pine Emblem & Gift Ledger */}
         <section
           className="portal-col-left stagger-in"
           style={{ ["--stagger-index" as string]: 1 }}
         >
-          <span className="eyebrow" style={{ display: "block", marginBottom: "12px" }}>
-            Persönliche Auslosung
-          </span>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "14px" }}>
+            <PineStarMark size={44} />
+            <span className="eyebrow" style={{ color: "var(--accent)" }}>
+              Frohe Bescherung · Losziehung
+            </span>
+          </div>
 
           <h1
             className="font-festive"
@@ -367,10 +368,28 @@ export default function RevealPortal({ communitySlug }: RevealPortalProps) {
             <div
               className="editorial-card-strong"
               style={{
-                padding: "clamp(24px, 4vw, 36px)",
+                overflow: "hidden",
                 textAlign: "left",
               }}
             >
+              {/* Crimson & Brass Gift-Wrap Card Header */}
+              <div
+                style={{
+                  background: "var(--bg-surface-muted)",
+                  borderBottom: "2px solid var(--brass)",
+                  padding: "12px clamp(24px, 4vw, 36px)",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <span className="eyebrow" style={{ color: "var(--ink-primary)" }}>
+                  Wichtel-Umschlag öffnen
+                </span>
+                <HollySprig size={22} />
+              </div>
+
+              <div style={{ padding: "clamp(24px, 4vw, 36px)" }}>
               {errorMessage && (
                 <div
                   style={{
@@ -585,6 +604,7 @@ export default function RevealPortal({ communitySlug }: RevealPortalProps) {
                   Sobald du deinen Namen auswählst, erscheint hier das Eingabefeld für deine PIN.
                 </div>
               )}
+              </div>
             </div>
           )}
         </section>
@@ -600,13 +620,17 @@ export default function RevealPortal({ communitySlug }: RevealPortalProps) {
           borderTop: "1px solid var(--border-hairline)",
           display: "flex",
           justifyContent: "space-between",
+          alignItems: "center",
           flexWrap: "wrap",
           gap: "10px",
           color: "var(--ink-muted)",
           fontSize: "0.82rem",
         }}
       >
-        <span>{pageTitle}</span>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
+          <NorthStarIcon size={12} color="#B58428" />
+          {pageTitle} · Frohe Weihnachten
+        </span>
         <span className="font-mono-code">wichteln.felixresch.com</span>
       </footer>
     </main>
